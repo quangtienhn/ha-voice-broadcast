@@ -12,6 +12,7 @@ from typing import Any
 
 import probatio
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
+from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import Context, HomeAssistant, ServiceCall, SupportsResponse
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
@@ -341,6 +342,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     runtime_data.recordings = RecordingRegistry(hass)
     await async_wipe_temp_dir(hass)
     runtime_data.sweep_unsub = async_setup_sweep(hass, runtime_data.recordings)
+
+    async def _async_discard_recordings_on_stop(_event) -> None:
+        if runtime_data.recordings is not None:
+            await runtime_data.recordings.async_discard_all()
+
+    entry.async_on_unload(
+        hass.bus.async_listen_once(
+            EVENT_HOMEASSISTANT_STOP, _async_discard_recordings_on_stop
+        )
+    )
 
     async def _async_speaker_registry_updated(event) -> None:
         data = event.data

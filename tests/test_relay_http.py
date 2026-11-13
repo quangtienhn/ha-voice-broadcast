@@ -7,10 +7,12 @@ from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 
 import pytest
+from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant
 
 from custom_components.voice_broadcast import recording as rec
 from custom_components.voice_broadcast.const import DOMAIN
+from custom_components.voice_broadcast.wav import parse_wav
 from tests.wav_utils import make_wav
 
 POST_URL = "/api/voice_broadcast/recording"
@@ -266,6 +268,21 @@ async def test_stop_service_discards_the_recording(relay: RelayHarness, hass) ->
     await hass.services.async_call(DOMAIN, "stop", {}, blocking=True)
     assert entry.runtime_data.recordings.active_count == 0
     await hass.async_block_till_done()
+
+
+async def test_shutdown_discards_recordings(relay: RelayHarness, hass) -> None:
+    entry = hass.config_entries.async_entries(DOMAIN)[0]
+    registry = entry.runtime_data.recordings
+    body = make_wav(duration=0.2)
+    record = await registry.async_save(entry.entry_id, body, parse_wav(body))
+    assert record.path.exists()
+    assert registry.active_count == 1
+
+    hass.bus.async_fire(EVENT_HOMEASSISTANT_STOP)
+    await hass.async_block_till_done()
+
+    assert registry.active_count == 0
+    assert not record.path.exists()
 
 
 async def test_no_internal_url_is_a_clear_error(
