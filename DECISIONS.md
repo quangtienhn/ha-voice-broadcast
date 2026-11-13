@@ -1,0 +1,160 @@
+# Decisions and verified findings
+
+## Manifest
+- `integration_type`: `service` (domain-level services plus entities; changed during v1.1.1 follow-ups from `helper`).
+- `iot_class`: `calculated` (no device communication; logic only).
+- `single_config_entry`: `true`.
+
+## Conversation agent
+- Verified in installed HA 2026.10.4 source (2026.11 line): `homeassistant.components.conversation` publicly exports `ConversationEntity`, `async_converse`, `ConversationResult` and `ConversationInput`; internal paths (`...conversation.agent_manager`, `...conversation.models`) also resolve. Integration uses the public export.
+- Conversation entity `supported_languages` returns `"*"` (accepted by HA: `list[str] | Literal["*"]`).
+- Fallback to another agent goes through `async_converse(..., agent_id=...)`; delegation to this integration's own conversation entity is rejected in the options flow and guarded at runtime.
+
+## Replies
+- `phrase_matching` returns a reply key (`speak`/`reply`/`delegate` + key) instead of raw text keys like `missing_content`.
+- Localized reply table in `conversation.py` (`en`/`vi`, selected by user language, default `en`). `reply_text` overrides only the success (`sent`) reply.
+
+## Static card asset
+- Static path + `add_extra_js_url` registered once in `async_setup` (guard flag in `hass.data[DOMAIN]`); no removal on entry unload.
+
+## TTS speak list support (v1.1.2 changed)
+- Verified in installed HA 2026.11.0 source: `homeassistant/components/tts/services.py` registers `speak` with `ATTR_MEDIA_PLAYER_ENTITY_ID: cv.comp_entity_ids`, so a list is accepted. Entity `async_speak` converts the whole list into a single `media_player.play_media` call; a failure on one target in a multi-target call is not documented to isolate other targets.
+- Integration now calls `tts.speak` once per speaker (`media_player_entity_id: [speaker]`) with `asyncio.gather(..., return_exceptions=True)`; a failing speaker never marks others failed.
+
+## Config and options flow
+- Normal `ConfigFlow` + `OptionsFlowWithReload`. Options flow reloads the entry automatically. Validation performed in code.
+
+## Volume slider (v1.1.2)
+- The shared number slider is now the single source of truth: `runtime_data.volume`, updated on `async_set_native_value` and restored from last number state in `async_added_to_hass`, synced into runtime data.
+- `async_announce` precedence: explicit `volume` service argument > `runtime_data.volume` > options default ("Initial volume"). Speakers in `no_volume_speakers` get no `volume_set`.
+
+## Restore entities
+- `RestoreEntity`, `RestoreNumber`, `RestoreText` used. `RestoreNumber`/`RestoreText` already include their base entity, so subclass only the restore class.
+
+## Entity registry tracking
+- `async_track_entity_registry_updated_event` used for rename handling and updates stored speaker IDs, then reloads the entry.
+
+## Blueprints
+- Integrations cannot auto-install blueprints. Blueprint is provided at repository root `blueprints/automation/voice_broadcast/voice_announce.yaml`.
+- Sentence triggers use `platform: conversation` with `command: !input sentences`, verified in `homeassistant/components/conversation/trigger.py`.
+- `set_conversation_response` is a supported script action, verified in `homeassistant/helpers/config_validation.py`.
+
+## Services
+- Registered once in `async_setup` (domain level) with `SupportsResponse.OPTIONAL`.
+- Concurrent calls serialized with one `asyncio.Lock` stored in `hass.data[DOMAIN]`.
+
+## Per-speaker playback (v1.1.2)
+- HA 2026.11 `tts.speak`: schema has `media_player_entity_id` (Required, comp_entity_ids=list), `message`, `cache` (Optional, default), `language`, `options. Entity `async_speak` turns it into a single `media_player.play_media` with a generated media source URI (`announce: True`), blocking, with context. Failure semantics for multiple targets are not documented to be isolated per target.
+- Integration now calls `tts.speak` once per speaker (`media_player_entity_id: [speaker]`) with `asyncio.gather(..., return_exceptions=True)`; a failing speaker never marks others failed.
+
+## Honest results (v1.1.2)
+- Response keeps `played` / `skipped` / `failed` plus new `errors` map `{entity_id: short error}`. "played" means HA accepted the request, not that it was audible.
+
+## Observability (v1.1.2)
+- One info log per announcement with resolved/skipped/failed entity ids only (never message text); warning per failed speaker with exception type+message; debug timing. Last result stored in runtime data and returned by diagnostics.
+
+## Card Assist row (v1.1.2)
+- The Assist row in the dashboard card uses icon `mdi:microphone` and a localized label: `TALK` (en) / `NÓI` (vi).
+- Card editor exposes optional `assist_name` and `assist_icon` text fields to override the label/icon.
+- `_build_dashboard_card_yaml` renders `name:` and `icon:` for the Assist button, reading `assist_name`/`assist_icon` from entry options when present, otherwise falling back to localized defaults.
+- Idea: options step "Speaker levels" with one NumberSelector per configured speaker (-50..+50 percentage points, default 0, skip no_volume speakers); effective volume = clamp(shared + offset, 0, 100).
+- Trade-offs: dynamic options schema complicates validation and translation parity; offsets add state that must survive reload and be stored per speaker; marginal benefit for most setups.
+- Decision: not implemented in v1.1.2. Recorded here so a future PR can implement it cleanly with tests for clamping and speaker removal.
+## Sources
+- Manifest: https://contributors.home-assistant.io/core/integrations/manifest/
+- Config flow: https://contributors.home-assistant.io/core/integrations/config-flow/
+- TTS services source: installed HA 2026.11.0 `homeassistant/components/tts/services.py`
+- TTS entity source: installed HA 2026.11.0 `homeassistant/components/tts/entity.py` (`async_speak`)
+- Conversation trigger source: installed HA 2026.11.0 `homeassistant/components/conversation/trigger.py`
+
+## Investigation: extra speakers play (v1.1.3)
+- Hypothesis 1 (external trigger: old YAML package / another automation / second sentence trigger): cannot be decided from code. User must check Logbook + automations.
+- Hypothesis 2 (more switches ON than seen: restored/stale/duplicate switches): PARTIALLY eliminated. Characterization test `test_restart_simulation_restore_state` confirms exactly one ON switch -> exactly one tts.speak call. Stale/duplicate switches are now warned via registry hygiene check in `async_setup_entry` (no auto-delete).
+- Hypothesis 3 (selected media player fans out via group/sync/multi-room): cannot be decided from code; depends on the speaker device.
+- Hypothesis 4 (real bug in this integration: stale switch mapping, registry-scan collision, wrong speaker list): ELIMINATED in clean test environment. Six characterization tests confirm exactly one switch ON -> exactly one `tts.speak` call with that single speaker; explicit `speakers` arg respected; unavailable speaker skipped; select-all/select-none/one-ON correct.
+- Hypothesis 5 (device/network replays shared media URL): cannot be decided from code.
+- Conclusion: no bug found in this integration. Observability added (dedicated Context per announcement, 20s state-change audit listener, `targeted`/`unexpected_started` in response and diagnostics, `voice_broadcast.debug_selection` service) so the user can distinguish integration-targeted vs external playback.
+- `media_player.media_stop` interruption on ESPHome announcement pipelines is unverified.
+- Tapo speaker compatibility is unknown; configured as no-volume speaker.
+- Wyoming TTS language handling: language is optional and empty by default.
+- Sentence triggers with an LLM conversation agent may require "Prefer handling commands locally"; unverified.
+- Frontend visual editor support for the `assist_pipeline` selector used by the Voice Broadcast card is unverified locally; backend selector registration was verified in HA source.
+
+## Playback mode (v1.2.0)
+- Since 1.1.2 the integration calls `tts.speak` once PER speaker, concurrently, so one failing speaker never blocks the others. Trade-off: TTS is synthesized N times and speakers may start slightly out of sync.
+- A `single_call` mode (one `tts.speak` with the full list, synchronized starts, one failure marks the batch) was considered.
+- Verified in HA 2026.10.4 source: `tts.speak` accepts `media_player_entity_id` as a list (`cv.comp_entity_ids`) and turns it into a single `media_player.play_media` call. Failure semantics for multiple targets in one call are not documented to isolate other targets.
+- Decision: `single_call` NOT implemented in v1.2.0. Per-speaker isolation is more valuable for announcements than perfect sync, and the async-synthesis cost is acceptable. Documented the trade-off in the README. A future PR can add `playback_mode` with tests.
+
+## Compatibility / minimum HA version (v1.2.0)
+- `probatio` is a direct dependency of homeassistant 2026.10.4 (`Requires-Dist: probatio==0.13.0`), so importing it is using a shipped HA-core dependency, not an external network call.
+- `async_converse`, `ConversationEntity`, `ConversationResult`, `ConversationInput` are all public exports of `homeassistant.components.conversation` in the installed 2026.10.4 source (2026.11 line). No internal conversation paths are used.
+- Code uses Python 3.12+ syntax (`type VoiceBroadcastConfigEntry = ConfigEntry[...]`), which requires HA >= 2024.12.
+- Minimum HA declared: 2026.11.0. Runtime verification was performed on HA 2026.10.4 source and the 2026.11.0 tag; older releases were not verified locally, so no claim is made for versions before 2026.11.0.
+
+## Public readiness: screenshots and README accuracy (unreleased)
+- Screenshots come from the author's own Home Assistant instance. `dashboard-card.png` originally showed real speaker names; the speaker column was replaced with neutral placeholders `Loa 1` .. `Loa 8` (Segoe UI 26 px, background/text colors sampled from the same image). `assist-pipeline-setup.png` and `voice-phrases.png` contained only generic service names and generic Vietnamese vocatives, so their text was kept as-is.
+- The original files live in `Photos/`, which is untracked and now listed in `.gitignore`; only the processed/optimized copies under `docs/images/` are part of the repository.
+- All three PNGs are cropped to the meaningful part of the dialog (removing the sticky footer that rendered half-cut buttons) and palette-quantized to 256 colors, which cut the total image size roughly in half without visible loss for screenshots.
+- `README.md` / `README.vi.md` list only options the config flow actually exposes. Removed two that were documented but never user-facing: `playback_mode` (not implemented; see the v1.2.0 decision above) and `audit_all_media_players` (legacy key read by `async_announce` for backward compatibility with old entries, but not offered in the UI).
+- Version stays `1.2.1` in `manifest.json`, `const.py` and the card in the old project; the next release tag was `v1.2.1` (no tags existed). This section is historical; Voice Broadcast starts at `0.1.0` (see the 0.1.0 section below).
+
+## Card display names (unreleased)
+- HA composes the friendly name of every entity that sets `has_entity_name = True` as "<device name> <entity name>" (`_async_get_full_entity_name` in `homeassistant/helpers/entity_registry.py`). With device "Voice Broadcast" and the entity name set to the speaker name, the state name becomes "Voice Broadcast Loa 1". This is long-standing documented naming behaviour, not a regression in a recent HA version.
+- Fix applied at the card display layer, matching the file the user verified on a live HA: `_rebuild` collects the integration's device names from `hass.devices` (plus the "Voice Broadcast" default) and rewrites each entities-card row as `{entity, name}` only when the friendly name starts with one of those names. Rows whose name has no such prefix stay plain entity ids, so HA renders them unchanged. Entity names, device names, entity ids, registry entries and services are untouched, and the YAML generated by `get_dashboard_card` is unchanged.
+- Reason for not changing `_attr_has_entity_name`: it would rename entities everywhere, change the suggested entity ids for newly added speakers, and contradicts the requirement to keep the registry and device structure intact.
+- Why the earlier local fix never showed up on the running HA: it existed only as uncommitted working-tree changes (HACS/release installs read GitHub), and the static card URL `/voice_broadcast/voice-broadcast-card.js?v=<VERSION>` did not change, so a browser could keep the cached script.
+
+## Voice Broadcast 0.1.0 (new project)
+
+### Rename and identity
+
+- New project directory `ha-voice-broadcast`, copied from TTS Broadcast 1.2.1 and renamed: display name `Voice Broadcast`, domain/folder `voice_broadcast`, services `voice_broadcast.*`, card `custom:voice-broadcast-card`, file `voice-broadcast-card.js`, static prefix `/voice_broadcast/`, API prefix `/api/voice_broadcast/`, version `0.1.0`.
+- `VERSION` in `const.py` is read from `manifest.json` instead of being a second hard-coded copy. The card has a `const VERSION` that a test compares with the manifest; the static URL uses `?v=<manifest version>` for cache-busting.
+- The old domain appears only as `LEGACY_DOMAIN` / `LEGACY_CARD_TYPE` in `const.py`, in the import step (which reads the old entry), and in migration docs/tests. A guard test rejects any other `tts_broadcast` / `tts-broadcast` string in Python code.
+- The old and new integrations can coexist: different domains, services, card types and static paths. Only speakers are shared, which is the user's choice during the transition.
+
+### HTTP views and lifecycle
+
+- Verified in HA 2026.11.0 source: `HomeAssistantView` supports `requires_auth` and `max_body_size`; `max_body_size` does **not** exist in the installed 2026.10.4 environment. The upload view therefore sets it for 2026.11 and also enforces the 3 MiB limit manually while reading chunks, so the same code works on both.
+- Views are registered once per Home Assistant run, guarded by `hass.data[DOMAIN]["views_registered"]`. If `hass.http` is not ready, `async_when_setup(hass, "http", …)` registers them later. This matters in tests where the entry is set up before the HTTP component, and it prevents duplicate-route failures on reload.
+- `POST`/`DELETE`/config views require authentication. `GET /api/voice_broadcast/recording/{token}.wav` is intentionally unauthenticated because ESPHome speakers cannot send a bearer token. The view accepts only a 43-character `secrets.token_urlsafe(32)` token present in an in-memory registry; the token is never used as a filesystem path, so path traversal is impossible. Files live outside `www/`, responses use `Cache-Control: no-store`, and tokens expire after 120 seconds.
+- Upload authentication is provided by Home Assistant's own HTTP layer; the card uses `hass.fetchWithAuth` so the token never appears in the page URL or logs.
+
+### Recording storage and cleanup
+
+- Temp directory: `hass.config.path("voice_broadcast_tmp")`. Not `.storage` (WAV bytes are not config data) and not `www/` (never served statically).
+- Files are written in the executor, registered under a random token, and deleted in `finally` after playback, on timeout, on the `stop` service, on entry unload, on Home Assistant shutdown, at startup (leftovers from a previous run) and by a 30-second sweep. The sweep runs with `cancel_on_shutdown=True` so pytest does not report lingering timers.
+- Cleanup watcher: a background task observes each played speaker, waits until every speaker left `playing`/`buffering` and reached `idle`/`off`/`paused`/`standby`, or until `duration + CLEANUP_GRACE_SECONDS` (15 s), then deletes the file. A speaker entity that disappears counts as finished. This avoids deleting the file while a slow speaker is still fetching it.
+
+### Relay playback
+
+- `media_player.play_media` with `media_content_type="music"` and `announce=True`, one call per speaker, concurrently. `announce=True` makes ESPHome speakers use their announcement pipeline, so no ffmpeg repackaging of a plain WAV URL is needed. Volume is applied per speaker with `volume_set` unless the speaker is in "without volume control".
+- Playback URL builder uses `get_url(..., allow_internal=True, allow_external=False, allow_cloud=False, allow_ip=True, require_ssl=False)`. External/cloud/HTTPS URLs are rejected because the speaker is on the LAN; if the internal URL is HTTPS, the detected `hass.config.api.local_ip`/port is used as `http://…`. Loopback addresses are rejected. When nothing usable remains, the upload returns `no_internal_url` (503) before any file is written.
+- The relay shares `runtime_data.lock` with TTS. A second relay or TTS call while one is running gets HTTP 409 `{"ok":false,"error":"busy"}` (or a service error) instead of queueing. This keeps behavior predictable and avoids overlapping announcements.
+
+### WAV validation
+
+- Custom strict parser (`wav.py`): RIFF/WAVE, `fmt ` PCM (format 1), 16-bit, mono, 8–48 kHz, `data` chunk present, sane sizes, and duration within the configured maximum (never above 60 s). Reject with short codes (`bad_wav`, `unsupported_wav`, `too_large`, `too_long`) before any playback. The card always sends 16 kHz mono 16-bit, but the server accepts other PCM rates within the range.
+
+### Configuration flow and import
+
+- Options menu now has three steps: `speakers`, `voice`, `recording`. `max_record_seconds` is a 5–60 number selector; the server clamps to the hard 60 s limit and the card also clamps its own `max_record_seconds` option.
+- When a legacy `tts_broadcast` entry exists, `async_step_import_old` offers a boolean import. Import copies only values into the form (`_legacy_suggestions`); it never mutates the old entry. Entity ids, dashboards and automations are not migrated.
+- Coexistence test: instead of shipping a fake legacy integration package, the test registers the minimum legacy surface (domain services, static path, HTTP view, entity registry entries, Repairs issue) and proves both can coexist and that the import step prefills correctly.
+
+### Card recorder
+
+- Capture path: `navigator.mediaDevices.getUserMedia` → `AudioContext` → `AudioWorklet` (source in a Blob URL) with `createScriptProcessor(4096, 1, 1)` as fallback when Worklet/CSP/`URL.createObjectURL` is unavailable. Audio is merged, linearly downsampled to 16 kHz, and encoded as a 16-bit mono PCM WAV in JS.
+- The card checks `isSecureContext`, `mediaDevices.getUserMedia`, `AudioContext`/`webkitAudioContext` and Worklet support before asking for permission, and shows specific EN/VI diagnostics for insecure context, missing API, permission denied, no microphone and microphone busy. It auto-stops at the configured limit and rejects clips under 0.25 s.
+- Upload uses `hass.fetchWithAuth("/api/voice_broadcast/recording")`; delete uses `DELETE` on the same path. The card never builds an audio element for the recording and never receives the speaker-facing token, so the token stays out of the DOM. Status messages are localized EN/VI. `show_record` defaults to true; `max_record_seconds` is clamped to 60.
+- The card keeps the existing per-speaker switches, shared volume, message, Speak/Stop, select all/none and TALK row behavior, strips the device-name prefix from entity rows, and exposes pure helpers as `globalThis.voiceBroadcastPure` for Node tests.
+
+### Verification caveat
+
+- Code was developed against the installed HA **2026.10.4** source (test virtualenv) and cross-checked against the HA **2026.11.0** source tree (`.ha-core`). Minimum declared version is `2026.11.0`, but no live 2026.11.0 instance was available. Real speakers, a real browser and the Companion app were **not** tested; `TESTING.md` hands those steps to the user.
+
+### Branding
+
+- New icon: microphone with broadcast arcs, drawn by `scripts/make_brand.py` and mirrored in `assets/icon.svg`, distinct from the old speaker-plus-waves icon. LICENSE holder reset to `quangtienhn`.
+
