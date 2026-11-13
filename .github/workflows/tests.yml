@@ -1,0 +1,27 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements_test.txt
+      - name: Ruff
+        run: ruff check . && ruff format --check .
+      - name: Card JS
+        run: |
+          node --check custom_components/voice_broadcast/www/voice-broadcast-card.js
+          node tests/test_card_display_name.mjs
+          node tests/test_card_recording.mjs
+      - name: Pytest
+        run: pytest tests -q --force-enable-socket
