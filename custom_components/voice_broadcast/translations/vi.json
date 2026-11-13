@@ -1,0 +1,234 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "Voice Broadcast đã được cấu hình."
+    },
+    "error": {
+      "tts_entity_not_found": "Không tìm thấy TTS entity đã chọn.",
+      "no_speakers": "Chọn ít nhất một loa.",
+      "invalid_subset": "Loa không có điều khiển âm lượng phải là tập con của các loa đã chọn.",
+      "phrase_in_both": "Một cụm từ không thể ở cả hai danh sách.",
+      "no_phrases": "Cần ít nhất một cụm từ trừ khi tắt bắt buộc cụm từ.",
+      "fallback_self": "Agent dự phòng không thể là chính integration này."
+    },
+    "step": {
+      "user": {
+        "title": "Voice Broadcast",
+        "description": "Cấu hình engine TTS và các loa.",
+        "data": {
+          "tts_entity": "TTS entity",
+          "speakers": "Loa",
+          "no_volume_speakers": "Loa không có điều khiển âm lượng",
+          "volume": "Âm lượng ban đầu",
+          "language": "Ngôn ngữ",
+          "options": "Tùy chọn",
+          "strip_phrases": "Cụm từ bỏ đi",
+          "keep_phrases": "Cụm từ giữ nguyên",
+          "require_phrase": "Bắt buộc cụm từ",
+          "fallback_agent": "Agent dự phòng",
+          "accent_insensitive": "Không phân biệt dấu",
+          "reply_text": "Văn bản trả lời"
+        },
+        "data_description": {
+          "strip_phrases": "Cụm từ bị bỏ khỏi đầu câu trước khi phát, ví dụ thông báo.",
+          "keep_phrases": "Cụm từ giữ nguyên cả câu, ví dụ xin chào.",
+          "require_phrase": "Nếu tắt, mọi câu đều được phát.",
+          "fallback_agent": "Agent dùng khi không khớp cụm từ.",
+          "accent_insensitive": "Bỏ qua dấu tiếng Việt khi so khớp.",
+          "reply_text": "Xác nhận ngắn trả về Assist."
+        }
+      },
+      "import_old": {
+        "title": "Nhập từ TTS Broadcast",
+        "description": "Tìm thấy cấu hình TTS Broadcast. Sao chép loa, engine TTS và tùy chọn giọng nói sang Voice Broadcast? Integration cũ không bị thay đổi.",
+        "data": {
+          "import_old": "Nhập cấu hình"
+        },
+        "data_description": {
+          "import_old": "Sao chép cấu hình từ entry TTS Broadcast hiện có. Bạn vẫn có thể sửa mọi thứ ở bước tiếp theo."
+        }
+      }
+    }
+  },
+  "options": {
+    "error": {
+      "tts_entity_not_found": "Không tìm thấy TTS entity đã chọn.",
+      "no_speakers": "Chọn ít nhất một loa.",
+      "invalid_subset": "Loa không có điều khiển âm lượng phải là tập con của các loa đã chọn.",
+      "phrase_in_both": "Một cụm từ không thể ở cả hai danh sách.",
+      "no_phrases": "Cần ít nhất một cụm từ trừ khi tắt bắt buộc cụm từ.",
+      "fallback_self": "Agent dự phòng không thể là chính integration này."
+    },
+    "step": {
+      "init": {
+        "title": "Voice Broadcast",
+        "description": "Chỉnh sửa cấu hình Voice Broadcast.",
+        "menu_options": {
+          "speakers": "Loa & TTS",
+          "voice": "Cụm từ thoại",
+          "recording": "Ghi âm"
+        }
+      },
+      "speakers": {
+        "title": "Loa & TTS",
+        "data": {
+          "tts_entity": "TTS entity",
+          "speakers": "Loa",
+          "no_volume_speakers": "Loa không có điều khiển âm lượng",
+          "volume": "Âm lượng ban đầu",
+          "language": "Ngôn ngữ",
+          "options": "Tùy chọn"
+        },
+        "data_description": {
+          "volume": "Âm lượng khởi đầu trước khi thanh trượt có trạng thái đã lưu."
+        }
+      },
+      "voice": {
+        "title": "Cụm từ thoại",
+        "data": {
+          "strip_phrases": "Cụm từ bỏ đi",
+          "keep_phrases": "Cụm từ giữ nguyên",
+          "require_phrase": "Bắt buộc cụm từ",
+          "fallback_agent": "Agent dự phòng",
+          "accent_insensitive": "Không phân biệt dấu",
+          "reply_text": "Văn bản trả lời"
+        },
+        "data_description": {
+          "strip_phrases": "Cụm từ bị bỏ khỏi đầu câu trước khi phát, ví dụ thông báo.",
+          "keep_phrases": "Cụm từ giữ nguyên cả câu, ví dụ xin chào.",
+          "require_phrase": "Nếu tắt, mọi câu đều được phát.",
+          "fallback_agent": "Agent dùng khi không khớp cụm từ.",
+          "accent_insensitive": "Bỏ qua dấu tiếng Việt khi so khớp.",
+          "reply_text": "Xác nhận ngắn trả về Assist."
+        }
+      },
+      "recording": {
+        "title": "Ghi âm",
+        "description": "Giới hạn cho chức năng ghi âm trên thẻ dashboard.",
+        "data": {
+          "max_record_seconds": "Thời lượng ghi tối đa"
+        },
+        "data_description": {
+          "max_record_seconds": "Bản ghi dài hơn mức này sẽ bị từ chối. Giới hạn cứng: 60 giây."
+        }
+      }
+    }
+  },
+  "entity": {
+    "switch": {
+      "speaker": {
+        "name": "Đã chọn"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "Âm lượng"
+      }
+    },
+    "text": {
+      "message": {
+        "name": "Tin nhắn"
+      }
+    },
+    "button": {
+      "speak": {
+        "name": "Phát"
+      },
+      "stop": {
+        "name": "Dừng"
+      },
+      "select_all": {
+        "name": "Chọn tất cả"
+      },
+      "select_none": {
+        "name": "Bỏ chọn tất cả"
+      }
+    },
+    "conversation": {
+      "voice_broadcast": {
+        "name": "Voice Broadcast"
+      }
+    }
+  },
+  "services": {
+    "speak": {
+      "name": "Phát",
+      "description": "Phát một tin nhắn đến các loa đã chọn.",
+      "fields": {
+        "message": {
+          "name": "Tin nhắn",
+          "description": "Văn bản cần thông báo."
+        },
+        "speakers": {
+          "name": "Loa",
+          "description": "Tập con loa đã cấu hình, tùy chọn."
+        },
+        "volume": {
+          "name": "Âm lượng",
+          "description": "Ghi đè âm lượng tùy chọn."
+        },
+        "language": {
+          "name": "Ngôn ngữ",
+          "description": "Ngôn ngữ truyền cho TTS."
+        },
+        "options": {
+          "name": "Tùy chọn",
+          "description": "Tùy chọn truyền cho TTS."
+        },
+        "cache": {
+          "name": "Bộ nhớ đệm",
+          "description": "Tùy chọn. Truyền qua tts.speak để sử dụng bộ nhớ đệm TTS."
+        },
+        "audit": {
+          "name": "Kiểm tra",
+          "description": "Tùy chọn. Chờ tối đa 20 s và báo cáo bất kỳ loa nào bắt đầu phát ngang hàng."
+        }
+      }
+    },
+    "stop": {
+      "name": "Dừng",
+      "description": "Dừng phát trên các loa đã chọn.",
+      "fields": {
+        "speakers": {
+          "name": "Loa",
+          "description": "Tập con loa đã cấu hình, tùy chọn."
+        }
+      }
+    },
+    "get_dashboard_card": {
+      "name": "Lấy card dashboard",
+      "description": "Trả về đoạn YAML cho card entities.",
+      "fields": {
+        "notify": {
+          "name": "Thông báo",
+          "description": "Tạo thông báo chứa YAML."
+        }
+      }
+    },
+    "debug_selection": {
+      "name": "Gỡ lỗi chọn loa",
+      "description": "Báo cáo trạng thái chọn loa, danh sách đã giải quyết, phân nhóm và kiểm tra lần thông báo gần nhất (không tác dụng phụ, không phát thanh).",
+      "fields": {}
+    }
+  },
+  "exceptions": {
+    "no_config_entry": {
+      "message": "Voice Broadcast chưa được cấu hình."
+    },
+    "empty_message": {
+      "message": "Tin nhắn không được để trống."
+    },
+    "no_speaker": {
+      "message": "Không có loa nào được chọn."
+    },
+    "no_tts_entity": {
+      "message": "Chưa cấu hình TTS entity."
+    },
+    "speaker_not_configured": {
+      "message": "Loa {speaker} chưa được cấu hình."
+    },
+    "fallback_self": {
+      "message": "Agent dự phòng không thể là chính integration này."
+    }
+  }
+}
