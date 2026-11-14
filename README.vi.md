@@ -8,9 +8,7 @@ dashboard rồi phát trên các loa đã chọn. Chọn loa bằng công tắc,
 trượt âm lượng, kích hoạt bằng giọng nói qua Assist và điều khiển mọi thứ từ một card —
 tất cả chạy cục bộ, bản thân integration không phụ thuộc dịch vụ đám mây nào.
 
-> **Lưu ý:** Repository hiện đang ở chế độ RIÊNG TƯ. Trong thời gian đó, hãy cài đặt
-> thủ công bằng cách sao chép thư mục (xem mục Cài đặt). Không tự đổi chế độ hiển thị
-> của repository.
+> **Tuyên bố từ chối trách nhiệm:** Integration không chính thức, không liên kết hoặc được bảo trợ bởi Home Assistant, Nabu Casa, Tapo/TP-Link, hay Google; được cung cấp nguyên trạng. Dựa trên dự án riêng tư trước đây của tác giả là TTS Broadcast.
 
 ## Integration này là gì và vì sao nên dùng
 
@@ -49,6 +47,15 @@ qua Assist.
 - Không có âm lượng riêng cho từng loa (chỉ một âm lượng chung).
 - Không có giao diện frontend tùy chỉnh nào ngoài card, và không truyền âm thanh trực
   tiếp giữa các thiết bị ngoài đoạn ghi âm ngắn của tính năng chuyển tiếp.
+
+## Tài liệu chi tiết
+
+- [Hướng dẫn cài đặt (HACS & Thủ công)](./docs/INSTALL.vi.md) | [English](./docs/INSTALL.md)
+- [Hướng dẫn cấu hình Thẻ bảng điều khiển](./docs/CARD.vi.md) | [English](./docs/CARD.md)
+- [Cơ chế Voice Relay & Xử lý âm thanh](./docs/VOICE_RELAY.vi.md) | [English](./docs/VOICE_RELAY.md)
+- [Cấu hình mạng HTTPS & Mạng cục bộ (LAN)](./docs/HTTPS_LAN.vi.md) | [English](./docs/HTTPS_LAN.md)
+- [Cẩm nang gỡ lỗi & Xử lý sự cố](./docs/TROUBLESHOOTING.vi.md) | [English](./docs/TROUBLESHOOTING.md)
+- [Hướng dẫn chuyển đổi từ integration tiền nhiệm](./MIGRATION.vi.md) | [English](./MIGRATION.md)
 
 ## Yêu cầu
 

@@ -1,5 +1,17 @@
 # Testing
 
+## Manual Hardware 5-Step Verification Checklist
+
+This is the essential checklist for validating on your real Home Assistant instance with actual speakers:
+
+1. **Install alongside the predecessor integration**: Copy to `custom_components/voice_broadcast` and restart Home Assistant. Open **Settings** > **Devices & Services** > **Add integration** > **Voice Broadcast**. Confirm the import step appears, copies existing settings, and leaves the old integration untouched.
+2. **Speak (TTS) and Assist auto**: Verify that typed messages and Assist speech play on the enabled speakers, and that speaker friendly names in the card have no redundant device prefix.
+3. **Record from the Companion App over HTTPS**: Tap the mic button in the Companion app over an HTTPS connection. Speak for 3–5 seconds and tap stop. Confirm speakers play the recording clearly and that the temporary recording in `config/voice_broadcast_tmp/` is purged ~15 seconds after playback.
+4. **Repeat at home on `http://<IP>:8123`**: Open Home Assistant via plain HTTP on your local IP. Tap the mic button and confirm the card safely blocks recording with the localized message: *"Recording needs a secure connection (HTTPS) or localhost"*.
+5. **Press Stop during a relay**: Start a longer voice recording, send it, and immediately tap the **Stop** button on the card. Confirm all speakers stop playing immediately, the temporary audio file is deleted, and the busy flag is cleared.
+
+---
+
 ## Automated
 
 ```bash

@@ -19,6 +19,19 @@ jobs:
         with:
           python-version: "3.14"
 
+      - name: Verify tag matches manifest version
+        run: |
+          python - <<'PY'
+          import json, os, sys
+          from pathlib import Path
+          tag = os.environ["GITHUB_REF_NAME"].removeprefix("v")
+          manifest = json.loads(Path("custom_components/voice_broadcast/manifest.json").read_text(encoding="utf-8"))
+          if manifest.get("version") != tag:
+              print(f"Error: Tag v{tag} does not match manifest.json version {manifest.get('version')}", file=sys.stderr)
+              sys.exit(1)
+          print(f"Tag v{tag} matches manifest.json version {manifest.get('version')}")
+          PY
+
       - name: Build voice_broadcast.zip (contents of custom_components/voice_broadcast only)
         run: |
           python - <<'PY'

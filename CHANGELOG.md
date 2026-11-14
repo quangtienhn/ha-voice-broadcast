@@ -5,6 +5,22 @@ All notable changes to the Voice Broadcast integration are documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 this project adheres to Semantic Versioning.
 
+## [0.2.0] - 2026-11-14
+
+First public release of **Voice Broadcast**, bringing TTS multi-speaker broadcasting and dashboard voice relay recording together in a single custom integration.
+
+### Features
+
+- **Multi-speaker TTS announcement**: Announce typed or spoken messages across multiple speakers concurrently with isolated error handling.
+- **Voice Relay**: Click-to-talk in the dashboard card, records mono PCM WAV via `AudioWorklet` (or `ScriptProcessor` fallback), downsamples to 16 kHz, and streams to local speakers over LAN HTTP without cloud dependencies.
+- **Modern Dashboard Card (`custom:voice-broadcast-card`)**: Integrated compact layout with collapsible speakers list, shared volume slider, tap-to-talk mic button, TTS textarea, and native Assist integration.
+- **Assist TALK row**: Automatically binds to Voice Broadcast Assist pipelines with `assist_pipeline_id: "auto"`.
+- **Concurrency & Busy protection**: Dedicated busy state management preventing overlapping announcements or relay collisions.
+- **Secure token downloads & automatic cleanup**: LAN playback uses unguessable single-purpose tokens; files are purged after playback, on timeout, on Stop, or on HA shutdown.
+- **Read-only settings import**: Seamless migration from the predecessor integration (`tts_broadcast`) during initial setup.
+- **Configurable limits & Diagnostics**: Customizable maximum recording length (5–60s), audit unexpected speaker playback, and redacted diagnostics.
+- **Bilingual documentation**: Complete English and Vietnamese documentation covering installation, card options, Voice Relay, HTTPS/LAN setup, and troubleshooting.
+
 ## [0.1.0] - 2026-11-13
 
 First release of **Voice Broadcast**, a renamed and extended copy of TTS Broadcast

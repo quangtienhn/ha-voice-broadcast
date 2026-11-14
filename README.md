@@ -8,9 +8,7 @@ dashboard card and plays it on the selected speakers. Pick speakers with switche
 share a volume slider, trigger by voice through Assist, and control everything from
 one card — all local, with no cloud dependency of its own.
 
-> **Note:** This repository is PRIVATE. Until that changes, install manually by
-> copying the folder (see Installation). Do not change the repository visibility
-> yourself.
+> **Disclaimer:** Unofficial integration, not affiliated with or endorsed by Home Assistant, Nabu Casa, Tapo/TP-Link, or Google; provided as is. Based on the author's earlier private project TTS Broadcast.
 
 ## What it is and why
 
@@ -47,6 +45,15 @@ switched on, set a shared volume, and speak or type the message through Assist.
 - No per-speaker volume (one shared volume).
 - No custom frontend beyond the card, and no audio streaming between devices beyond
   the short relay upload.
+
+## Documentation
+
+- [Installation Guide (HACS & Manual)](./docs/INSTALL.md) | [Tiếng Việt](./docs/INSTALL.vi.md)
+- [Dashboard Card Guide & Options](./docs/CARD.md) | [Tiếng Việt](./docs/CARD.vi.md)
+- [Voice Relay & Audio Architecture](./docs/VOICE_RELAY.md) | [Tiếng Việt](./docs/VOICE_RELAY.vi.md)
+- [HTTPS & Local Network Setup](./docs/HTTPS_LAN.md) | [Tiếng Việt](./docs/HTTPS_LAN.vi.md)
+- [Troubleshooting & Runbook](./docs/TROUBLESHOOTING.md) | [Tiếng Việt](./docs/TROUBLESHOOTING.vi.md)
+- [Migration from Predecessor](./MIGRATION.md) | [Tiếng Việt](./MIGRATION.vi.md)
 
 ## Requirements
 

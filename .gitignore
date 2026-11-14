@@ -7,3 +7,9 @@ dist/
 .vscode/
 .idea/
 Photos/
+voice_broadcast_tmp/
+*.tmp
+node_modules/
+*.wav
+!tests/fixtures/*.wav
+
