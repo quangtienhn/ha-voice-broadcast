@@ -22,7 +22,7 @@ def test_manifest_identity() -> None:
     manifest = json.loads((INTEGRATION / "manifest.json").read_text("utf-8"))
     assert manifest["domain"] == "voice_broadcast"
     assert manifest["name"] == "Voice Broadcast"
-    assert manifest["version"] == "0.1.0"
+    assert manifest["version"] == "0.2.0"
     assert manifest["config_flow"] is True
     assert manifest["single_config_entry"] is True
     assert manifest["documentation"].endswith("/ha-voice-broadcast")

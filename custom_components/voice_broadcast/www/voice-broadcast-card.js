@@ -1,4 +1,4 @@
-const VERSION = "0.1.0";
+﻿const VERSION = "0.2.0";
 
 const AUTO_PIPELINE = "auto";
 
@@ -78,6 +78,10 @@ function strings(hass) {
 }
 
 const RECORDER_STYLES = `
+.vb-outer {
+  display: block;
+  overflow: hidden;
+}
 .vb-recorder {
   padding: 8px 16px 16px;
   border-top: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
@@ -390,6 +394,7 @@ class VoiceBroadcastCard extends HTMLElement {
       return { entity: e.entity_id, name: stripped };
     };
 
+    let noPipelineNote = null;
     const rows = [];
     switches.forEach((e) => rows.push(row(e)));
 
@@ -426,7 +431,7 @@ class VoiceBroadcastCard extends HTMLElement {
         div.style.padding = "8px 16px";
         div.style.color = "var(--primary-text-color, var(--text-primary-color))";
         div.textContent = s.assist_no_pipeline;
-        this.shadowRoot.appendChild(div);
+        noPipelineNote = div;
       }
     }
 
@@ -452,7 +457,20 @@ class VoiceBroadcastCard extends HTMLElement {
 
     const card = await helpers.createCardElement(cardConfig);
     card.hass = this._hass;
-    this.shadowRoot.appendChild(card);
+    // One outer ha-card holds the entities card AND the recorder, so the
+    // Record row sits inside the same frame. The inner card is made flat.
+    const outer = document.createElement("ha-card");
+    outer.className = "vb-outer";
+    if (card && card.style && typeof card.style.setProperty === "function") {
+      card.style.setProperty("--ha-card-background", "transparent");
+      card.style.setProperty("--ha-card-box-shadow", "none");
+      card.style.setProperty("--ha-card-border-width", "0px");
+      card.style.setProperty("--ha-card-backdrop-filter", "none");
+    }
+    outer.appendChild(card);
+    if (noPipelineNote) outer.appendChild(noPipelineNote);
+    this.shadowRoot.appendChild(outer);
+    this._outer = outer;
     this._card = card;
 
     if (this._config.show_record !== false) {
@@ -499,7 +517,7 @@ class VoiceBroadcastCard extends HTMLElement {
     status.appendChild(timer);
     wrapper.appendChild(status);
     wrapper.appendChild(controls);
-    this.shadowRoot.appendChild(wrapper);
+    (this._outer || this.shadowRoot).appendChild(wrapper);
 
     this._statusNode = status;
     this._timerNode = timer;

@@ -77,10 +77,12 @@
           "no_volume_speakers": "Speakers without volume control",
           "volume": "Initial volume",
           "language": "Language",
-          "options": "Options"
+          "options": "Options",
+          "audit_all_media_players": "Audit all media players"
         },
         "data_description": {
-          "volume": "Starting volume before the slider has a stored state."
+          "volume": "Starting volume before the slider has a stored state.",
+          "audit_all_media_players": "When enabled, announcement audit watches all media players in Home Assistant instead of only unselected configured speakers."
         }
       },
       "voice": {

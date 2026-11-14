@@ -61,7 +61,6 @@ from .const import (
 )
 from .recording import (
     RecordingConfigView,
-    RecordingDeleteView,
     RecordingFileView,
     RecordingRegistry,
     RecordingUploadView,
@@ -90,6 +89,7 @@ class VoiceBroadcastRuntimeData:
     pipeline_listener_unsub: Callable[[], None] | None = None
     recordings: RecordingRegistry | None = None
     sweep_unsub: Callable[[], None] | None = None
+    relay_playing: bool = False
 
 
 type VoiceBroadcastConfigEntry = ConfigEntry[VoiceBroadcastRuntimeData]
@@ -141,7 +141,6 @@ def _async_register_http_views(hass: HomeAssistant) -> None:
         if data.get("views_registered") or hass.http is None:
             return
         hass.http.register_view(RecordingUploadView(hass))
-        hass.http.register_view(RecordingDeleteView(hass))
         hass.http.register_view(RecordingConfigView(hass))
         hass.http.register_view(RecordingFileView(hass))
         data["views_registered"] = True
@@ -344,6 +343,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     runtime_data.sweep_unsub = async_setup_sweep(hass, runtime_data.recordings)
 
     async def _async_discard_recordings_on_stop(_event) -> None:
+        runtime_data.relay_playing = False
         if runtime_data.recordings is not None:
             await runtime_data.recordings.async_discard_all()
 
@@ -499,6 +499,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         runtime_data = entry.runtime_data
+        entry.runtime_data.relay_playing = False
         if runtime_data.recordings is not None:
             await runtime_data.recordings.async_discard_entry(entry.entry_id)
         if runtime_data.sweep_unsub is not None:
@@ -600,6 +601,12 @@ async def async_announce(
         raise ServiceValidationError(
             translation_domain=DOMAIN,
             translation_key="empty_message",
+        )
+
+    if entry.runtime_data.relay_playing:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="busy",
         )
 
     async with entry.runtime_data.lock:
@@ -904,6 +911,7 @@ async def _async_stop(hass: HomeAssistant, call: ServiceCall) -> dict[str, Any]:
 
         # A recording is only valid while it is being fetched; stopping the
         # speakers makes it unused, so remove it immediately.
+        entry.runtime_data.relay_playing = False
         if entry.runtime_data.recordings is not None:
             await entry.runtime_data.recordings.async_discard_entry(entry.entry_id)
 

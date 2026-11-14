@@ -138,7 +138,7 @@ async def test_cleanup_waits_for_idle_then_deletes(hass, monkeypatch) -> None:
     hass.states.async_set(speaker, "playing")
 
     task = asyncio.create_task(
-        rec._async_wait_and_cleanup(hass, registry, record, [speaker], 0.1)
+        rec._async_wait_and_cleanup(hass, None, registry, record, [speaker], 0.1)
     )
     await asyncio.sleep(0.05)
     hass.states.async_set(speaker, "idle")
@@ -157,7 +157,7 @@ async def test_cleanup_times_out_and_deletes(hass, monkeypatch) -> None:
     hass.states.async_set(speaker, "playing")
 
     await asyncio.wait_for(
-        rec._async_wait_and_cleanup(hass, registry, record, [speaker], 0.05),
+        rec._async_wait_and_cleanup(hass, None, registry, record, [speaker], 0.05),
         timeout=2,
     )
 

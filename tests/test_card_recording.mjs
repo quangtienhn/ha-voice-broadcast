@@ -158,10 +158,25 @@ assert.ok(pure, "pure helpers must be exposed for the test suite");
   );
 }
 
+// --- Round trip with Python parse_wav facts -----------------------------
+{
+  const samples = new Float32Array(8000).fill(0.1);
+  const buffer = pure.encodeWav(samples, 16000);
+  assert.equal(buffer.byteLength, 44 + 8000 * 2);
+  const view = new DataView(buffer);
+  assert.equal(view.getUint32(24, true), 16000);
+  assert.equal(view.getUint16(22, true), 1);
+  assert.equal(view.getUint16(34, true), 16);
+  assert.equal(view.getUint32(40, true), 16000);
+  // Duration in seconds: data_bytes / (sample_rate * block_align) = 16000 / (16000 * 2) = 0.5s
+  const duration = view.getUint32(40, true) / (view.getUint32(24, true) * view.getUint16(32, true));
+  assert.equal(duration, 0.5);
+}
+
 // --- Version matches the manifest ----------------------------------------
 {
   assert.equal(pure.VERSION, manifest.version);
-  assert.equal(pure.VERSION, "0.1.0");
+  assert.equal(pure.VERSION, "0.2.0");
 }
 
 console.log("card recording checks passed");

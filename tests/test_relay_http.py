@@ -249,10 +249,12 @@ async def test_delete_discards_the_recording(relay: RelayHarness, hass) -> None:
     registry = hass.config_entries.async_entries(DOMAIN)[0].runtime_data.recordings
     assert registry.active_count == 1
 
+    entry = hass.config_entries.async_entries(DOMAIN)[0]
     deleted = await relay.client.delete(POST_URL)
     assert deleted.status == 200
     assert (await deleted.json())["ok"] is True
     assert registry.active_count == 0
+    assert entry.runtime_data.relay_playing is False
     await hass.async_block_till_done()
 
 
@@ -267,6 +269,7 @@ async def test_stop_service_discards_the_recording(relay: RelayHarness, hass) ->
 
     await hass.services.async_call(DOMAIN, "stop", {}, blocking=True)
     assert entry.runtime_data.recordings.active_count == 0
+    assert entry.runtime_data.relay_playing is False
     await hass.async_block_till_done()
 
 
@@ -283,6 +286,24 @@ async def test_shutdown_discards_recordings(relay: RelayHarness, hass) -> None:
 
     assert registry.active_count == 0
     assert not record.path.exists()
+
+
+async def test_relay_playing_blocks_tts_and_stop_clears(
+    relay: RelayHarness, hass: HomeAssistant
+) -> None:
+    entry = hass.config_entries.async_entries(DOMAIN)[0]
+    entry.runtime_data.relay_playing = True
+
+    # Attempting TTS speak while relay is playing raises ServiceValidationError (busy)
+    with pytest.raises(Exception) as exc_info:
+        await hass.services.async_call(
+            DOMAIN, "speak", {"message": "hello"}, blocking=True
+        )
+    assert "busy" in str(exc_info.value)
+
+    # Calling stop clears relay_playing and stops speakers
+    await hass.services.async_call(DOMAIN, "stop", {}, blocking=True)
+    assert entry.runtime_data.relay_playing is False
 
 
 async def test_no_internal_url_is_a_clear_error(

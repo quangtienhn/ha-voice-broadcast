@@ -12,6 +12,7 @@ Security notes:
 from __future__ import annotations
 
 import asyncio
+import datetime
 import ipaddress
 import logging
 import re
@@ -32,7 +33,6 @@ from homeassistant.helpers.event import (
     async_track_time_interval,
 )
 from homeassistant.helpers.network import NoURLAvailableError, get_url
-from homeassistant.util import dt as dt_util
 
 from .const import (
     API_PREFIX,
@@ -241,7 +241,7 @@ def async_setup_sweep(hass: HomeAssistant, registry: RecordingRegistry) -> callb
     return async_track_time_interval(
         hass,
         _sweep,
-        dt_util.dt.timedelta(seconds=SWEEP_INTERVAL_SECONDS),
+        datetime.timedelta(seconds=SWEEP_INTERVAL_SECONDS),
         cancel_on_shutdown=True,
     )
 
@@ -355,7 +355,7 @@ async def async_play_recording(
     from . import _coerce_speakers, _resolve_speakers  # noqa: PLC0415
 
     lock: asyncio.Lock = entry.runtime_data.lock
-    if lock.locked():
+    if lock.locked() or entry.runtime_data.relay_playing:
         raise RecordingBusyError
 
     registry: RecordingRegistry = entry.runtime_data.recordings
@@ -438,14 +438,16 @@ async def async_play_recording(
         lock.release()
 
     if played:
+        entry.runtime_data.relay_playing = True
         entry.async_create_background_task(
             hass,
             _async_wait_and_cleanup(
-                hass, registry, record, list(played), record.duration
+                hass, entry, registry, record, list(played), record.duration
             ),
             "voice_broadcast_recording_cleanup",
         )
     else:
+        entry.runtime_data.relay_playing = False
         await registry.async_discard(record.token)
 
     return result
@@ -484,6 +486,7 @@ async def _async_play_one(
 
 async def _async_wait_and_cleanup(
     hass: HomeAssistant,
+    entry: Any,
     registry: RecordingRegistry,
     record: Recording,
     speakers: list[str],
@@ -522,19 +525,30 @@ async def _async_wait_and_cleanup(
             await asyncio.sleep(CLEANUP_POLL_SECONDS)
     finally:
         unsub()
+        if hasattr(entry, "runtime_data") and entry.runtime_data is not None:
+            entry.runtime_data.relay_playing = False
         await registry.async_discard(record.token)
 
 
 class RecordingUploadView(HomeAssistantView):
-    """POST raw WAV bytes; validate, store, play, and schedule deletion."""
+    """POST raw WAV bytes (or DELETE to clear); validate, store, play, and cleanup."""
 
     url = RECORDING_POST_PATH
     name = f"api:{DOMAIN}:recording"
     requires_auth = True
-    max_body_size = MAX_BODY_BYTES
 
     def __init__(self, hass: HomeAssistant) -> None:
         self.hass = hass
+
+    async def delete(self, request: web.Request) -> web.Response:
+        from . import _get_entry  # noqa: PLC0415
+
+        entry = _get_entry(self.hass)
+        if entry is None:
+            return _json_error("no_config_entry", HTTPStatus.SERVICE_UNAVAILABLE)
+        entry.runtime_data.relay_playing = False
+        await entry.runtime_data.recordings.async_discard_entry(entry.entry_id)
+        return self.json({"ok": True})
 
     async def post(self, request: web.Request) -> web.Response:
         from . import _config, _get_entry  # noqa: PLC0415
@@ -544,7 +558,7 @@ class RecordingUploadView(HomeAssistantView):
             return _json_error("no_config_entry", HTTPStatus.SERVICE_UNAVAILABLE)
 
         runtime = entry.runtime_data
-        if runtime.lock.locked():
+        if runtime.lock.locked() or runtime.relay_playing:
             return _json_error("busy", HTTPStatus.CONFLICT)
 
         content_length = request.content_length
@@ -627,26 +641,6 @@ class RecordingConfigView(HomeAssistantView):
                 "max_bytes": MAX_BODY_BYTES,
             }
         )
-
-
-class RecordingDeleteView(HomeAssistantView):
-    """Discard any recording owned by the config entry."""
-
-    url = RECORDING_POST_PATH
-    name = f"api:{DOMAIN}:recording_delete"
-    requires_auth = True
-
-    def __init__(self, hass: HomeAssistant) -> None:
-        self.hass = hass
-
-    async def delete(self, request: web.Request) -> web.Response:
-        from . import _get_entry  # noqa: PLC0415
-
-        entry = _get_entry(self.hass)
-        if entry is None:
-            return _json_error("no_config_entry", HTTPStatus.SERVICE_UNAVAILABLE)
-        await entry.runtime_data.recordings.async_discard_entry(entry.entry_id)
-        return self.json({"ok": True})
 
 
 class RecordingFileView(HomeAssistantView):

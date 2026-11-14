@@ -12,6 +12,7 @@ from homeassistant.helpers import selector
 from . import _own_conversation_entity_id
 from .const import (
     CONF_ACCENT_INSENSITIVE,
+    CONF_AUDIT_ALL_MEDIA_PLAYERS,
     CONF_FALLBACK_AGENT,
     CONF_KEEP_PHRASES,
     CONF_LANGUAGE,
@@ -73,6 +74,9 @@ SPEAKERS_SCHEMA = probatio.Schema(
         ),
         probatio.Optional(CONF_LANGUAGE, default=""): selector.TextSelector(),
         probatio.Optional(CONF_OPTIONS, default={}): selector.ObjectSelector(),
+        probatio.Optional(
+            CONF_AUDIT_ALL_MEDIA_PLAYERS, default=False
+        ): selector.BooleanSelector(),
     }
 )
 
@@ -154,13 +158,17 @@ def _validate_speakers_section(
     """Validate only the speakers & TTS fields of a flow step."""
     errors: dict[str, str] = {}
     current = stored or {}
-    speakers = user_input.get(CONF_SPEAKERS) or current.get(CONF_SPEAKERS) or []
+    speakers = (
+        user_input[CONF_SPEAKERS]
+        if CONF_SPEAKERS in user_input
+        else current.get(CONF_SPEAKERS) or []
+    )
     if not speakers:
         errors[CONF_SPEAKERS] = "no_speakers"
     no_volume = (
-        user_input.get(CONF_NO_VOLUME_SPEAKERS)
-        or current.get(CONF_NO_VOLUME_SPEAKERS)
-        or []
+        user_input[CONF_NO_VOLUME_SPEAKERS]
+        if CONF_NO_VOLUME_SPEAKERS in user_input
+        else current.get(CONF_NO_VOLUME_SPEAKERS) or []
     )
     if any(item not in speakers for item in no_volume):
         errors[CONF_NO_VOLUME_SPEAKERS] = "invalid_subset"

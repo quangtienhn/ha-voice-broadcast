@@ -1,8 +1,236 @@
 {
-  "issues": {
-    "no_assist_pipeline": {
-      "title": "No Assist pipeline uses the Voice Broadcast agent",
-      "description": "Create an Assist pipeline whose conversation agent is Voice Broadcast so the TALK button on the dashboard card works. Go to Settings > Voice assistants > Add assistant and choose conversation agent \"Voice Broadcast\"."
+  "config": {
+    "abort": {
+      "already_configured": "Voice Broadcast is already configured."
+    },
+    "error": {
+      "tts_entity_not_found": "The selected TTS entity was not found.",
+      "no_speakers": "Select at least one speaker.",
+      "invalid_subset": "Speakers without volume control must be a subset of the selected speakers.",
+      "phrase_in_both": "A phrase may not appear in both lists.",
+      "no_phrases": "At least one phrase is required unless require phrase is disabled.",
+      "fallback_self": "The fallback agent cannot be this integration."
+    },
+    "step": {
+      "user": {
+        "title": "Voice Broadcast",
+        "description": "Configure the TTS engine and speakers.",
+        "data": {
+          "tts_entity": "TTS entity",
+          "speakers": "Speakers",
+          "no_volume_speakers": "Speakers without volume control",
+          "volume": "Initial volume",
+          "language": "Language",
+          "options": "Options",
+          "strip_phrases": "Strip phrases",
+          "keep_phrases": "Keep phrases",
+          "require_phrase": "Require phrase",
+          "fallback_agent": "Fallback agent",
+          "accent_insensitive": "Accent insensitive",
+          "reply_text": "Reply text"
+        },
+        "data_description": {
+          "strip_phrases": "Phrases removed from the start of a sentence before speaking, e.g. thông báo.",
+          "keep_phrases": "Phrases that keep the whole sentence unchanged, e.g. xin chào.",
+          "require_phrase": "If disabled, every sentence is broadcast.",
+          "fallback_agent": "Agent used when no phrase matches.",
+          "accent_insensitive": "Ignore Vietnamese diacritics when matching.",
+          "reply_text": "Short confirmation returned to Assist."
+        }
+      },
+      "import_old": {
+        "title": "Import from TTS Broadcast",
+        "description": "A TTS Broadcast configuration was found. Copy its speakers, TTS engine and voice options into Voice Broadcast? The old integration is left untouched.",
+        "data": {
+          "import_old": "Import settings"
+        },
+        "data_description": {
+          "import_old": "Copy settings from the existing TTS Broadcast config entry. Everything can still be edited on the next screen."
+        }
+      }
+    }
+  },
+  "options": {
+    "error": {
+      "tts_entity_not_found": "The selected TTS entity was not found.",
+      "no_speakers": "Select at least one speaker.",
+      "invalid_subset": "Speakers without volume control must be a subset of the selected speakers.",
+      "phrase_in_both": "A phrase may not appear in both lists.",
+      "no_phrases": "At least one phrase is required unless require phrase is disabled.",
+      "fallback_self": "The fallback agent cannot be this integration."
+    },
+    "step": {
+      "init": {
+        "title": "Voice Broadcast",
+        "description": "Edit the Voice Broadcast configuration.",
+        "menu_options": {
+          "speakers": "Speakers & TTS",
+          "voice": "Voice phrases",
+          "recording": "Recording"
+        }
+      },
+      "speakers": {
+        "title": "Speakers & TTS",
+        "data": {
+          "tts_entity": "TTS entity",
+          "speakers": "Speakers",
+          "no_volume_speakers": "Speakers without volume control",
+          "volume": "Initial volume",
+          "language": "Language",
+          "options": "Options",
+          "audit_all_media_players": "Audit all media players"
+        },
+        "data_description": {
+          "volume": "Starting volume before the slider has a stored state.",
+          "audit_all_media_players": "When enabled, announcement audit watches all media players in Home Assistant instead of only unselected configured speakers."
+        }
+      },
+      "voice": {
+        "title": "Voice phrases",
+        "data": {
+          "strip_phrases": "Strip phrases",
+          "keep_phrases": "Keep phrases",
+          "require_phrase": "Require phrase",
+          "fallback_agent": "Fallback agent",
+          "accent_insensitive": "Accent insensitive",
+          "reply_text": "Reply text"
+        },
+        "data_description": {
+          "strip_phrases": "Phrases removed from the start of a sentence before speaking, e.g. thông báo.",
+          "keep_phrases": "Phrases that keep the whole sentence unchanged, e.g. xin chào.",
+          "require_phrase": "If disabled, every sentence is broadcast.",
+          "fallback_agent": "Agent used when no phrase matches.",
+          "accent_insensitive": "Ignore Vietnamese diacritics when matching.",
+          "reply_text": "Short confirmation returned to Assist."
+        }
+      },
+      "recording": {
+        "title": "Recording",
+        "description": "Limits for the dashboard card voice relay.",
+        "data": {
+          "max_record_seconds": "Maximum recording length"
+        },
+        "data_description": {
+          "max_record_seconds": "Recordings longer than this are rejected. Hard limit: 60 seconds."
+        }
+      }
+    }
+  },
+  "entity": {
+    "switch": {
+      "speaker": {
+        "name": "Selected"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "Volume"
+      }
+    },
+    "text": {
+      "message": {
+        "name": "Message"
+      }
+    },
+    "button": {
+      "speak": {
+        "name": "Speak"
+      },
+      "stop": {
+        "name": "Stop"
+      },
+      "select_all": {
+        "name": "Select all"
+      },
+      "select_none": {
+        "name": "Select none"
+      }
+    },
+    "conversation": {
+      "voice_broadcast": {
+        "name": "Voice Broadcast"
+      }
+    }
+  },
+  "services": {
+    "speak": {
+      "name": "Speak",
+      "description": "Speak a message to the selected speakers.",
+      "fields": {
+        "message": {
+          "name": "Message",
+          "description": "The text to announce."
+        },
+        "speakers": {
+          "name": "Speakers",
+          "description": "Optional subset of configured speakers."
+        },
+        "volume": {
+          "name": "Volume",
+          "description": "Optional volume override."
+        },
+        "language": {
+          "name": "Language",
+          "description": "Optional language passed through to the TTS engine."
+        },
+        "options": {
+          "name": "Options",
+          "description": "Optional options passed through to the TTS engine."
+        },
+        "cache": {
+          "name": "Cache",
+          "description": "Optional. Passed through to tts.speak to use the TTS cache."
+        },
+        "audit": {
+          "name": "Audit",
+          "description": "Optional. Wait up to 20 s and report any media players that started playing unexpectedly."
+        }
+      }
+    },
+    "stop": {
+      "name": "Stop",
+      "description": "Stop playback on the selected speakers.",
+      "fields": {
+        "speakers": {
+          "name": "Speakers",
+          "description": "Optional subset of configured speakers."
+        }
+      }
+    },
+    "get_dashboard_card": {
+      "name": "Get dashboard card",
+      "description": "Return a YAML snippet for a stock entities card.",
+      "fields": {
+        "notify": {
+          "name": "Notify",
+          "description": "Create a persistent notification containing the YAML."
+        }
+      }
+    },
+    "debug_selection": {
+      "name": "Debug speaker selection",
+      "description": "Report speaker selection state, resolved list, grouping and the last announcement audit (no side effects, no speech).",
+      "fields": {}
+    }
+  },
+  "exceptions": {
+    "no_config_entry": {
+      "message": "Voice Broadcast is not configured."
+    },
+    "empty_message": {
+      "message": "The message must not be empty."
+    },
+    "no_speaker": {
+      "message": "No speaker resolved."
+    },
+    "no_tts_entity": {
+      "message": "No TTS entity configured."
+    },
+    "speaker_not_configured": {
+      "message": "Speaker {speaker} is not configured."
+    },
+    "fallback_self": {
+      "message": "The fallback agent cannot be this integration."
     }
   }
 }

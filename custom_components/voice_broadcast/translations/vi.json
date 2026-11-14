@@ -77,10 +77,12 @@
           "no_volume_speakers": "Loa không có điều khiển âm lượng",
           "volume": "Âm lượng ban đầu",
           "language": "Ngôn ngữ",
-          "options": "Tùy chọn"
+          "options": "Tùy chọn",
+          "audit_all_media_players": "Kiểm tra toàn bộ media player"
         },
         "data_description": {
-          "volume": "Âm lượng khởi đầu trước khi thanh trượt có trạng thái đã lưu."
+          "volume": "Âm lượng khởi đầu trước khi thanh trượt có trạng thái đã lưu.",
+          "audit_all_media_players": "Khi bật, hệ thống kiểm tra thông báo sẽ theo dõi toàn bộ media player trong Home Assistant thay vì chỉ các loa đã cấu hình nhưng không được chọn."
         }
       },
       "voice": {

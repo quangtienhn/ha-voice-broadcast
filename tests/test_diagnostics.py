@@ -51,3 +51,27 @@ async def test_diagnostics(hass: HomeAssistant, mock_config_entry) -> None:
         "media_player.speaker_one",
         "media_player.speaker_two",
     ]
+
+
+async def test_diagnostics_redaction(hass: HomeAssistant, mock_config_entry) -> None:
+    """Diagnostics must not expose raw tokens, token URLs or audio data."""
+    mock_config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    diag = await async_get_config_entry_diagnostics(hass, mock_config_entry)
+
+    # Check structure
+    assert "relay" in diag
+    assert "active_recordings" in diag["relay"]
+    assert "temp_files" in diag["relay"]
+
+    # Convert entire diagnostics dump to string to check for leaks
+    import json
+
+    diag_str = json.dumps(diag)
+
+    # Must not contain token patterns or paths
+    assert "token" not in diag_str
+    assert "voice_broadcast_tmp" not in diag_str
+    assert ".wav" not in diag_str
