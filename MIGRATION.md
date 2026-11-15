@@ -12,8 +12,8 @@ integration, not an in-place upgrade:
 | Services | `tts_broadcast.*` | `voice_broadcast.*` |
 | Card type | `custom:tts-broadcast-card` | `custom:voice-broadcast-card` |
 | Card file | `tts-broadcast-card.js` | `voice-broadcast-card.js` |
-| Repository | old repository | `ha-voice-broadcast` (private) |
-| Version | 1.2.1 | 0.1.0 |
+| Repository | old repository | `ha-voice-broadcast` |
+| Version | 1.2.1 | 0.2.0 |
 
 Entity ids are created by Home Assistant from the new device and entity names, so they
 will not be identical to the old ones. Update dashboards, scripts and automations that
@@ -28,7 +28,7 @@ refer to the old entities or services.
 
 ## Install Voice Broadcast
 
-### Manual install (works while the repository is private)
+### Manual install
 
 1. Copy `custom_components/voice_broadcast` to `config/custom_components/voice_broadcast`.
 2. Restart Home Assistant.
@@ -36,9 +36,9 @@ refer to the old entities or services.
 
 ### HACS
 
-HACS cannot install a private repository without extra authentication. If HACS refuses
-the repository, use the manual install above. HACS support is expected to work once the
-repository is public.
+Add the repository as a custom repository in HACS: HACS -> Integrations -> Custom
+repositories -> `https://github.com/quangtienhn/ha-voice-broadcast`, category
+"Integration". If anything goes wrong, use the manual install above.
 
 ## Import the old settings (read-only)
 
@@ -108,4 +108,4 @@ read-only import step only.
 | Dashboard card is missing | Use `custom:voice-broadcast-card`, then hard-refresh the browser. |
 | Both integrations answer Assist | Two pipelines or two conversation agents match; keep one pipeline for announcements. |
 | Speakers announce twice | Both integrations (or an old YAML package) still act on the same message; remove the duplicate. |
-| HACS cannot add the repository | It is private; install manually or authenticate HACS. |
+| HACS cannot add the repository | Install manually, or add it as a custom repository in HACS. |

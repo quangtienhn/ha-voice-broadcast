@@ -12,8 +12,8 @@ integration khác, không phải bản nâng cấp tại chỗ:
 | Dịch vụ | `tts_broadcast.*` | `voice_broadcast.*` |
 | Loại card | `custom:tts-broadcast-card` | `custom:voice-broadcast-card` |
 | File card | `tts-broadcast-card.js` | `voice-broadcast-card.js` |
-| Repository | repository cũ | `ha-voice-broadcast` (riêng tư) |
-| Phiên bản | 1.2.1 | 0.1.0 |
+| Repository | repository cũ | `ha-voice-broadcast` |
+| Phiên bản | 1.2.1 | 0.2.0 |
 
 Home Assistant tạo entity id từ tên thiết bị và entity mới, nên chúng sẽ không giống hệt
 bản cũ. Hãy cập nhật dashboard, script và automation đang dùng entity hoặc dịch vụ cũ.
@@ -27,7 +27,7 @@ bản cũ. Hãy cập nhật dashboard, script và automation đang dùng entity
 
 ## Cài Voice Broadcast
 
-### Cài thủ công (dùng được khi repository còn riêng tư)
+### Cài thủ công
 
 1. Sao chép `custom_components/voice_broadcast` vào
    `config/custom_components/voice_broadcast`.
@@ -36,8 +36,9 @@ bản cũ. Hãy cập nhật dashboard, script và automation đang dùng entity
 
 ### HACS
 
-HACS không cài được repository riêng tư nếu chưa xác thực thêm. Nếu HACS từ chối, hãy
-dùng cách cài thủ công ở trên. HACS sẽ dùng được sau khi repository được công khai.
+Thêm repository vào HACS dưới dạng custom repository: HACS -> Integrations -> Custom
+repositories -> `https://github.com/quangtienhn/ha-voice-broadcast`, danh mục
+"Integration". Nếu gặp lỗi, hãy dùng cách cài thủ công ở trên.
 
 ## Nhập cấu hình cũ (chỉ đọc)
 
@@ -105,4 +106,4 @@ hình chỉ được sao chép qua bước nhập chỉ đọc.
 | Không thấy card | Dùng `custom:voice-broadcast-card` rồi tải lại trang (hard refresh). |
 | Cả hai integration cùng trả lời Assist | Có hai pipeline hoặc hai conversation agent khớp; chỉ giữ một pipeline cho thông báo. |
 | Loa thông báo hai lần | Cả hai integration (hoặc gói YAML cũ) cùng xử lý một nội dung; gỡ bản trùng. |
-| HACS không thêm được repository | Repository đang riêng tư; cài thủ công hoặc xác thực HACS. |
+| HACS không thêm được repository | Thêm bằng custom repositories trong HACS, hoặc cài thủ công. |

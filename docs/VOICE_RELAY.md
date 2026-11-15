@@ -1,8 +1,10 @@
 # Voice Relay & Audio Processing
 
-**English** | [Tiếng Việt](./VOICE_RELAY.md)
+**English** | [Tiếng Việt](./VOICE_RELAY.vi.md)
 
 Voice Relay allows users to record their real voice directly inside the dashboard card and broadcast it across selected media players without relying on text-to-speech synthesis.
+
+![Card showing the tap-to-talk microphone and recording status](./images/card-collapsed.jpg)
 
 ---
 

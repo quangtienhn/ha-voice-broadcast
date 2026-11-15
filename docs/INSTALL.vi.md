@@ -2,13 +2,11 @@
 
 [English](./INSTALL.md) | **Tiếng Việt**
 
-Bạn có thể cài đặt Voice Broadcast thông qua HACS (khuyến nghị sau khi kho lưu trữ được mở công khai) hoặc cài đặt thủ công bằng cách sao chép thư mục.
+Bạn có thể cài đặt Voice Broadcast thông qua HACS hoặc cài đặt thủ công bằng cách sao chép thư mục.
 
 ---
 
-## Cách 1: Qua HACS (Khuyến nghị)
-
-> **Lưu ý:** HACS yêu cầu kho lưu trữ ở chế độ công khai (public). Nếu kho lưu trữ đang ở chế độ riêng tư, hãy dùng Cách 2 (Cài đặt thủ công).
+## Cách 1: Qua HACS
 
 1. Trong Home Assistant, vào **HACS** > **Integrations**.
 2. Bấm vào biểu tượng ba chấm ở góc trên bên phải, chọn **Custom repositories**.

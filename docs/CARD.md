@@ -57,6 +57,18 @@ assist_name: "Speak"
 max_record_seconds: 30
 ```
 
+## Screenshots
+
+![Card with the speaker list expanded, volume, tap-to-talk mic, TTS text and Assist row](./images/card-speakers.jpg)
+
+![Card with the speaker list collapsed](./images/card-collapsed.jpg)
+
+![Card in full view](./images/card-full.jpg)
+
+![Device page with one switch per speaker](./images/device-info.jpg)
+
+Speaker names are redacted in these screenshots.
+
 ---
 
 ## Cache Refresh Tips

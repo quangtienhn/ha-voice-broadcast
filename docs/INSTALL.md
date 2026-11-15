@@ -2,13 +2,11 @@
 
 **English** | [Tiếng Việt](./INSTALL.vi.md)
 
-Voice Broadcast can be installed via HACS (recommended once the repository is public) or manually.
+Voice Broadcast can be installed via HACS or manually.
 
 ---
 
-## Method 1: HACS (Recommended)
-
-> **Note:** HACS requires the repository to be public. If the repository is currently private, use Method 2 (Manual Installation).
+## Method 1: HACS
 
 1. In Home Assistant, open **HACS** > **Integrations**.
 2. Click the top-right menu (three vertical dots) and choose **Custom repositories**.

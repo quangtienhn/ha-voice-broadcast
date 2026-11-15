@@ -5,7 +5,7 @@ All notable changes to the Voice Broadcast integration are documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 this project adheres to Semantic Versioning.
 
-## [0.2.0] - 2026-11-14
+## [0.2.0] - 2026-11-15
 
 First public release of **Voice Broadcast**, bringing TTS multi-speaker broadcasting and dashboard voice relay recording together in a single custom integration.
 
@@ -20,6 +20,15 @@ First public release of **Voice Broadcast**, bringing TTS multi-speaker broadcas
 - **Read-only settings import**: Seamless migration from the predecessor integration (`tts_broadcast`) during initial setup.
 - **Configurable limits & Diagnostics**: Customizable maximum recording length (5–60s), audit unexpected speaker playback, and redacted diagnostics.
 - **Bilingual documentation**: Complete English and Vietnamese documentation covering installation, card options, Voice Relay, HTTPS/LAN setup, and troubleshooting.
+
+### Changed
+
+- The `audit_all_media_players` option is now exposed in the Speakers & TTS step (English and Vietnamese labels with helper text; default off). It was read internally since 1.1.2 but was not reachable from the UI.
+- `strings.json` is now an exact key-parity copy of `translations/en.json`. A test fails if `en.json`, `vi.json` and `strings.json` key sets diverge.
+- `RecordingUploadView` handles both `POST` (upload) and `DELETE` (discard) on `/api/voice_broadcast/recording`; the separate delete view (a duplicate route/name) was removed.
+- While a relay is playing, a TTS announcement or a second relay returns a clear busy error (HTTP 409 for uploads, localized service error for `speak`) instead of overlapping playback; the **Stop** button clears the state and deletes the temporary file. The announce lock is not held during playback, so Stop stays responsive.
+- Removed the `max_body_size` view attribute (absent from the HA 2026.10 typings); the 3 MiB limit is enforced with manual chunked reads. `dt_util.dt.timedelta` replaced with `datetime.timedelta`.
+- Brand icons regenerated trimmed and centred; `hacs.json` trimmed to supported keys; documentation and README screenshots replaced with redacted images; README badges (HACS, minimum HA version, MIT) and the "Add to HACS" button.
 
 ## [0.1.0] - 2026-11-13
 

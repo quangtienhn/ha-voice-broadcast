@@ -47,8 +47,9 @@ hardware, a real browser or the Companion app.
 
 ## Voice relay — real hardware checklist
 
-These steps need a real speaker and a real browser. They have **not** been run by the
-project author on real hardware at release time.
+The owner has confirmed on HAOS with HA 2026.11 that the relay works end to end
+(record from the Companion app, speakers play, temp file removed). The steps below
+remain the checklist for anyone running it on a different setup.
 
 ### Prerequisites
 

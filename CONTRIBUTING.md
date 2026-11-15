@@ -12,8 +12,7 @@ speakers, and relays short voice recordings from the dashboard card.
 4. Run the checks below and make sure they are green.
 5. Open a pull request against `main` and describe what changed and why.
 
-The repository is currently private, so external forks and pull requests are not
-available yet.
+Forks and pull requests are welcome.
 
 ## Development setup
 

@@ -2,11 +2,11 @@
 
 **[Tiếng Việt]** | **[English](./README.md)**
 
-Một integration tùy chỉnh cho Home Assistant để phát thông báo TTS đến nhiều loa cùng
-lúc, kèm tính năng chuyển tiếp giọng nói: ghi âm một đoạn ngắn ngay trên card
-dashboard rồi phát trên các loa đã chọn. Chọn loa bằng công tắc, dùng chung một thanh
-trượt âm lượng, kích hoạt bằng giọng nói qua Assist và điều khiển mọi thứ từ một card —
-tất cả chạy cục bộ, bản thân integration không phụ thuộc dịch vụ đám mây nào.
+[![Thêm vào HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=quangtienhn&repository=ha-voice-broadcast&category=integration)
+![Home Assistant tối thiểu](https://img.shields.io/badge/Home%20Assistant-2026.11.0%2B-blue)
+![Giấy phép](https://img.shields.io/badge/License-MIT-green)
+
+Phát thông báo TTS đến nhiều loa và ghi âm giọng nói ngắn ngay trên card dashboard để phát trên các loa đã chọn — chạy cục bộ, không phụ thuộc đám mây.
 
 > **Tuyên bố từ chối trách nhiệm:** Integration không chính thức, không liên kết hoặc được bảo trợ bởi Home Assistant, Nabu Casa, Tapo/TP-Link, hay Google; được cung cấp nguyên trạng. Dựa trên dự án riêng tư trước đây của tác giả là TTS Broadcast.
 
@@ -70,7 +70,7 @@ qua Assist.
 
 ## Cài đặt
 
-### Cài thủ công (dùng được ngay; repository đang riêng tư)
+### Cài thủ công
 
 1. Sao chép `custom_components/voice_broadcast` vào
    `config/custom_components/voice_broadcast`.
@@ -112,13 +112,15 @@ rồi"; giữ nguyên `xin chào` nên "xin chào mọi người xuống ăn cơ
 
 Bước **Cụm từ thoại** trong luồng tùy chọn:
 
-![Bước cụm từ thoại: cụm từ bỏ đi, cụm từ giữ nguyên, bắt buộc cụm từ, agent dự phòng, không phân biệt dấu](./docs/images/voice-phrases.png)
+![Bước cụm từ thoại: cụm từ bỏ đi, cụm từ giữ nguyên, bắt buộc cụm từ, agent dự phòng, không phân biệt dấu](./docs/images/config-voice-phrases.jpg)
 
 ## Entity và dịch vụ
 
 Một thiết bị "Voice Broadcast" gồm một công tắc cho mỗi loa, một entity number âm lượng
 dùng chung, một ô tin nhắn, các nút Phát/Dừng/Chọn tất cả/Bỏ chọn tất cả và một
 conversation agent.
+
+![Trang thiết bị Voice Broadcast với một công tắc cho mỗi loa](./docs/images/device-info.jpg)
 
 Mỗi lần thông báo, integration gọi `tts.speak` một lần cho từng loa đã chọn, chạy song
 song: engine TTS tổng hợp lại cho mỗi loa (tốn thêm một chút) nhưng một loa lỗi không
@@ -188,8 +190,6 @@ những loa bạn đã bật.
 4. Lưu pipeline. **Không** đặt nó làm pipeline mặc định.
 5. Ghi lại id của pipeline.
 
-![Thiết lập pipeline Assist: conversation agent chọn Voice Broadcast, cùng engine STT và TTS](./docs/images/assist-pipeline-setup.png)
-
 Trong card dashboard, đặt `assist_pipeline_id` thành id đó. Hoặc để `auto` (mặc định):
 card sẽ tự tìm pipeline có conversation agent là Voice Broadcast.
 
@@ -200,9 +200,11 @@ báo đã bản địa hóa sẽ nhắc bạn tạo pipeline.
 
 Thêm card -> Voice Broadcast. Card tự phát hiện các entity của integration.
 
-![Card dashboard Voice Broadcast: công tắc từng loa, ô tin nhắn, chọn tất cả/bỏ chọn tất cả, Phát, Dừng và âm lượng](./docs/images/dashboard-card.png)
+![Card Voice Broadcast với danh sách loa mở rộng, âm lượng, micro bấm để nói, ô TTS và hàng Assist](./docs/images/card-speakers.jpg)
 
-Tên loa trong ảnh chụp màn hình là tên thay thế, không phải tên thật.
+![Card Voice Broadcast với danh sách loa thu gọn](./docs/images/card-collapsed.jpg)
+
+Tên loa trong ảnh chụp màn hình đã được che.
 
 Tùy chọn của card (tất cả đều không bắt buộc):
 
@@ -238,6 +240,8 @@ một dòng thông báo đã bản địa hóa sẽ hiện thay thế.
 Đây là cách thứ hai để đưa âm thanh ra loa mà không cần TTS. Hữu ích khi bạn muốn thông
 báo nhanh bằng chính giọng mình, phát một hiệu ứng âm thanh, hoặc dùng ngôn ngữ mà engine
 TTS đọc chưa tốt.
+
+![Card Voice Broadcast hiển thị nút micro bấm để nói và trạng thái ghi âm](./docs/images/card-collapsed.jpg)
 
 1. Mở dashboard có card Voice Broadcast. Trang phải chạy HTTPS hoặc `localhost`; nếu
    không, card hiện giải thích đã bản địa hóa thay vì xin quyền micro.
@@ -338,20 +342,34 @@ Xem `MIGRATION.md` (tiếng Anh) và `MIGRATION.vi.md` (tiếng Việt) để c�
 | Thanh trượt âm lượng là nguồn dữ liệu duy nhất | Đã kiểm chứng bằng kiểm thử tự động |
 | `debug_selection` / kiểm tra / `unexpected_started` | Đã kiểm chứng bằng kiểm thử tự động |
 | Card tự chọn pipeline Assist | Chỉ kiểm tra cú pháp (`node --check`); logic chọn pipeline chưa có unit test |
-| Dòng HA 2026.11, loa `media_player` ESPHome | Đã kiểm chứng trên HA 2026.10.4 của tác giả |
-| Pipeline Assist với TTS/STT Wyoming cục bộ | Đã kiểm chứng trên HA 2026.10.4 của tác giả |
-| Hành vi loa Tapo | Chưa kiểm tra |
-| Các engine TTS khác | Chưa kiểm tra |
-| Các phiên bản HA khác | Chưa kiểm tra (khai báo tối thiểu 2026.11.0) |
-| Ngắt thông báo ESPHome qua `media_stop` | Chưa kiểm tra |
-| Trình chỉnh sửa trực quan trên frontend cho `assist_pipeline` | Chưa kiểm tra cục bộ (backend đã kiểm chứng) |
 | Kiểm tra WAV, xác thực upload, token, chống path traversal | Đã kiểm chứng bằng kiểm thử tự động |
 | Chọn loa, âm lượng, lỗi từng loa, dọn file của tính năng chuyển tiếp | Đã kiểm chứng bằng kiểm thử tự động (media player giả lập) |
 | Xung đột (409 busy) và quét thư mục tạm | Đã kiểm chứng bằng kiểm thử tự động |
 | Bộ ghi trong trình duyệt: hạ mẫu, mã hóa WAV, chẩn đoán | Đã kiểm chứng bằng unit test Node (không phải trình duyệt thật) |
 | Chạy song song với entry `tts_broadcast` cũ và bước nhập cấu hình | Đã kiểm chứng bằng kiểm thử tự động với integration cũ giả lập |
-| Ghi âm thật bằng micro + ứng dụng Companion trên điện thoại | Chưa kiểm tra — xem các bước thủ công trong `TESTING.md` |
-| Tính năng chuyển tiếp trên loa ESPHome thật qua LAN | Chưa kiểm tra — xem `TESTING.md` |
+
+### Đã kiểm chứng trên thiết bị thật (chủ nhân xác nhận, HAOS + Home Assistant 2026.11)
+
+| Mục | Trạng thái |
+|-----|-----------|
+| TTS phát trên một số loa `media_player` ESPHome | Đã kiểm chứng, hoạt động tốt |
+| Wyoming TTS / STT | Đã kiểm chứng, hoạt động tốt |
+| Công tắc từng loa và âm lượng chung | Đã kiểm chứng, hoạt động tốt |
+| Cụm từ thoại và pipeline Assist với card `assist_pipeline_id: auto` | Đã kiểm chứng, hoạt động tốt |
+| Card dashboard (giao diện 0.2.x) | Đã kiểm chứng, hoạt động tốt |
+| Ghi âm chuyển tiếp từ ứng dụng Companion | Đã kiểm chứng, hoạt động tốt |
+
+### Chưa kiểm chứng
+
+| Mục | Trạng thái |
+|-----|-----------|
+| Loa camera Tapo | Chưa kiểm chứng |
+| Engine TTS khác ngoài Wyoming | Chưa kiểm chứng |
+| Các phiên bản Home Assistant khác | Chưa kiểm chứng (khai báo tối thiểu 2026.11.0) |
+| Cài đặt Docker / Core / Supervised | Chưa kiểm chứng |
+| Ứng dụng iOS | Chưa kiểm chứng |
+| Trình duyệt máy tính khác ngoài trình duyệt chủ nhân đã dùng | Chưa kiểm chứng |
+| Ngắt thông báo ESPHome qua `media_stop` | Chưa kiểm chứng |
 
 ## Quyền riêng tư và bảo mật
 

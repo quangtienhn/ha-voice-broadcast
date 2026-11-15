@@ -116,7 +116,7 @@
 
 ### HTTP views and lifecycle
 
-- Verified in HA 2026.11.0 source: `HomeAssistantView` supports `requires_auth` and `max_body_size`; `max_body_size` does **not** exist in the installed 2026.10.4 environment. The upload view therefore sets it for 2026.11 and also enforces the 3 MiB limit manually while reading chunks, so the same code works on both.
+- Verified in HA 2026.11.0 source (`homeassistant/helpers/http.py`): `HomeAssistantView` supports `requires_auth` and `max_body_size` (applied as `request._client_max_size` before the handler). The upload view therefore no longer sets `max_body_size`; the 3 MiB limit is enforced manually while reading chunks (plus an early `content_length` check), which works on both HA 2026.10 and 2026.11.
 - Views are registered once per Home Assistant run, guarded by `hass.data[DOMAIN]["views_registered"]`. If `hass.http` is not ready, `async_when_setup(hass, "http", …)` registers them later. This matters in tests where the entry is set up before the HTTP component, and it prevents duplicate-route failures on reload.
 - `POST`/`DELETE`/config views require authentication. `GET /api/voice_broadcast/recording/{token}.wav` is intentionally unauthenticated because ESPHome speakers cannot send a bearer token. The view accepts only a 43-character `secrets.token_urlsafe(32)` token present in an in-memory registry; the token is never used as a filesystem path, so path traversal is impossible. Files live outside `www/`, responses use `Cache-Control: no-store`, and tokens expire after 120 seconds.
 - Upload authentication is provided by Home Assistant's own HTTP layer; the card uses `hass.fetchWithAuth` so the token never appears in the page URL or logs.
@@ -152,9 +152,41 @@
 
 ### Verification caveat
 
-- Code was developed against the installed HA **2026.10.4** source (test virtualenv) and cross-checked against the HA **2026.11.0** source tree (`.ha-core`). Minimum declared version is `2026.11.0`, but no live 2026.11.0 instance was available. Real speakers, a real browser and the Companion app were **not** tested; `TESTING.md` hands those steps to the user.
+- Code was developed against the installed HA **2026.10.4** source (test virtualenv) and cross-checked against the HA **2026.11.0** source tree (`.ha-core`). Minimum declared version is `2026.11.0`. At the time this was written, real speakers/browser/Companion app had not been tested; the owner has since confirmed them on HAOS with HA 2026.11 (see the 0.2.0 section below).
 
 ### Branding
 
 - New icon: microphone with broadcast arcs, drawn by `scripts/make_brand.py` and mirrored in `assets/icon.svg`, distinct from the old speaker-plus-waves icon. LICENSE holder reset to `quangtienhn`.
 
+
+## Voice Broadcast 0.2.0 (public release)
+
+### Screenshots (privacy gate)
+
+- The author-provided phone screenshots (`docs/images/*.jpg`) originally showed real speaker and entity names (`media_player.*`, `Loa 1`, `Loa 2`, …). They were redacted by painting the text boxes with the surrounding row background (horizontal gradient sampled left/right of each box) in `scripts/redact_images.py`, then re-saved with all metadata stripped. `scripts/ocr_images.py` re-reads the finished files and fails if any personal name, private address, token or URL reappears. The three old placeholder PNGs (`dashboard-card.png`, `assist-pipeline-setup.png`, `voice-phrases.png`) were removed; the brand new screenshots are the only ones shipped.
+- `dashboard-card.png` / `assist-pipeline-setup.png` / `voice-phrases.png` references elsewhere in this file are historical (the sections are marked as such); those files no longer exist.
+
+### Concurrency
+
+- `runtime_data.relay_playing` is set while a relay is playing and cleared when every target finished, at the timeout, on Stop, on unload/shutdown and on the HTTP DELETE endpoint. TTS (`voice_broadcast.speak`) while a relay plays raises a localized `busy` service error; a relay while a relay plays returns HTTP 409. The announce lock is deliberately not held during playback so Stop stays responsive.
+
+### HTTP views
+
+- `RecordingUploadView` now implements both `post` and `delete` on `/api/voice_broadcast/recording`, so `RecordingDeleteView` (a duplicate route/name pair) is gone. The manual 3 MiB chunk check stays; `max_body_size` was removed after verifying that `HomeAssistantView` in HA 2026.11 reads it (it is not needed and is absent in the installed 2026.10.4). `dt_util.dt.timedelta` was replaced with `datetime.timedelta`.
+
+### Options flow
+
+- `audit_all_media_players` is now exposed in the Speakers & TTS step (boolean, EN + VI labels and helper text, default off). It was read by `async_announce` since 1.1.2 but never reachable from the UI.
+
+### Translations
+
+- `strings.json` is now an exact key-parity copy of `translations/en.json`. `tests/test_translations.py` fails when `en.json`, `vi.json` and `strings.json` key sets differ.
+
+### HACS / release
+
+- `hacs.json` keeps only `name` and `homeassistant` (the previously present `render_readme` is not a supported HACS key). With no `zip_release`, HACS installs from the default branch; the release workflow attaches `voice_broadcast.zip` as a convenience asset for manual installs. The brand icons were regenerated trimmed and centred (bbox ~22..234 inside a 256 canvas) as required for custom integrations shipping a `brand/` folder.
+- Manifest `version`, `const.py` (read from the manifest), the card `VERSION` and the CHANGELOG top entry are all `0.2.0`; the release workflow fails if the pushed tag does not match the manifest.
+
+### Verified by the owner (on HAOS, HA 2026.11)
+
+- TTS to several ESPHome speaker media players with Wyoming TTS/STT, per-speaker switches and volume, voice phrases, the Assist pipeline with card `assist_pipeline_id: auto`, the 0.2.x dashboard card, and the voice relay recording from the Companion app. Everything else is documented as not tested in the READMEs.

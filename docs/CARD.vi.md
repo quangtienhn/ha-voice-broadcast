@@ -57,6 +57,18 @@ assist_name: "Nói"
 max_record_seconds: 30
 ```
 
+## Ảnh chụp màn hình
+
+![Card với danh sách loa mở rộng, âm lượng, micro bấm để nói, ô TTS và hàng Assist](./images/card-speakers.jpg)
+
+![Card với danh sách loa thu gọn](./images/card-collapsed.jpg)
+
+![Card ở chế độ xem đầy đủ](./images/card-full.jpg)
+
+![Trang thiết bị với một công tắc cho mỗi loa](./images/device-info.jpg)
+
+Tên loa trong ảnh chụp màn hình đã được che.
+
 ---
 
 ## Mẹo làm mới bộ nhớ đệm (Cache)

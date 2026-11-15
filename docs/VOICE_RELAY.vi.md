@@ -4,6 +4,8 @@
 
 Tính năng Voice Relay (Chuyển tiếp giọng nói) cho phép người dùng ghi âm giọng nói thật ngay trên thẻ bảng điều khiển và phát ngay lập tức tới các loa đã chọn mà không cần thông qua bộ đọc TTS.
 
+![Card hiển thị nút micro bấm để nói và trạng thái ghi âm](./images/card-collapsed.jpg)
+
 ---
 
 ## Thông số kỹ thuật & Giới hạn

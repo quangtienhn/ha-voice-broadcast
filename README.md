@@ -2,11 +2,11 @@
 
 **English** | [Tiếng Việt](./README.vi.md)
 
-A Home Assistant custom integration to broadcast a spoken or typed TTS announcement
-to multiple speakers at once, plus a voice relay that records a short message in the
-dashboard card and plays it on the selected speakers. Pick speakers with switches,
-share a volume slider, trigger by voice through Assist, and control everything from
-one card — all local, with no cloud dependency of its own.
+[![Add to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=quangtienhn&repository=ha-voice-broadcast&category=integration)
+![Home Assistant minimum](https://img.shields.io/badge/Home%20Assistant-2026.11.0%2B-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
+
+Broadcast TTS announcements to multiple speakers and record short voice messages in the dashboard card to play on the selected speakers — local, no cloud dependency of its own.
 
 > **Disclaimer:** Unofficial integration, not affiliated with or endorsed by Home Assistant, Nabu Casa, Tapo/TP-Link, or Google; provided as is. Based on the author's earlier private project TTS Broadcast.
 
@@ -57,8 +57,7 @@ switched on, set a shared volume, and speak or type the message through Assist.
 
 ## Requirements
 
-- Home Assistant **2026.11.0 or newer** (this project was built and tested against
-  HA 2026.10.4 plus the 2026.11.0 source tree; older releases were not verified).
+- Home Assistant **2026.11.0 or newer** (the owner runs it on HAOS with HA 2026.11; older releases were not verified).
 - A TTS entity (e.g. `tts.wyoming_vietnamese`).
 - `media_player` speakers that can play TTS.
 - Optional: an STT engine for voice trigger through Assist.
@@ -68,14 +67,14 @@ switched on, set a shared volume, and speak or type the message through Assist.
 
 ## Installation
 
-### Manual (works now; repository is private)
+### Manual installation
 
 1. Copy `custom_components/voice_broadcast` into
    `config/custom_components/voice_broadcast`.
 2. Restart Home Assistant.
 3. Add the integration from Settings -> Devices & Services.
 
-### HACS (only after the repository goes public)
+### HACS
 
 1. HACS -> Integrations -> Custom repositories.
 2. Add this repository URL, category "Integration".
@@ -111,13 +110,15 @@ whole.
 
 The **Voice phrases** step of the options flow:
 
-![Voice phrases options step: strip phrases, keep phrases, require phrase, fallback agent, accent insensitive](./docs/images/voice-phrases.png)
+![Voice phrases options step: strip phrases, keep phrases, require phrase, fallback agent, accent insensitive](./docs/images/config-voice-phrases.jpg)
 
 ## Entities and services
 
 One device "Voice Broadcast" with one switch per speaker, one shared volume number,
 one message text, Speak/Stop/Select all/Select none buttons, and one conversation
 agent.
+
+![Voice Broadcast device page with one switch per speaker](./docs/images/device-info.jpg)
 
 Each announcement calls `tts.speak` once per selected speaker, in parallel: the TTS
 engine synthesizes once per speaker (a little extra work) but a failing speaker never
@@ -187,8 +188,6 @@ satellites — so every speaker plays, not just the ones you switched on.
 4. Save the pipeline. Do **not** make it the default pipeline.
 5. Note its pipeline id.
 
-![Assist pipeline setup: conversation agent set to Voice Broadcast, with the STT and TTS engines](./docs/images/assist-pipeline-setup.png)
-
 In the dashboard card, set `assist_pipeline_id` to that id. Or leave it as
 `auto` (the default): the card finds the pipeline whose conversation agent is the
 Voice Broadcast agent automatically.
@@ -201,9 +200,11 @@ line tells you to create one.
 Add card -> Voice Broadcast. The card discovers the integration's entities
 automatically.
 
-![Voice Broadcast dashboard card: per-speaker switches, message box, select all/none, Speak, Stop and volume](./docs/images/dashboard-card.png)
+![Voice Broadcast dashboard card with the speaker list expanded, volume, tap-to-talk mic, TTS text and Assist row](./docs/images/card-speakers.jpg)
 
-Speaker names in the screenshot are placeholders.
+![Voice Broadcast card with the speaker list collapsed](./docs/images/card-collapsed.jpg)
+
+Speaker names are redacted in these screenshots.
 
 Card options (all optional):
 
@@ -238,6 +239,8 @@ localized info line is shown instead.
 The relay is a second way to get audio onto the speakers without TTS. It is useful for
 a quick announcement in your own voice, a sound effect, or a language the TTS engine
 handles badly.
+
+![Voice Broadcast card showing the tap-to-talk microphone and the recording status](./docs/images/card-collapsed.jpg)
 
 1. Open a dashboard that contains the Voice Broadcast card. The page must be HTTPS or
    `localhost`; otherwise the card shows a localized explanation instead of asking for
@@ -344,20 +347,34 @@ See `MIGRATION.md` (English) and `MIGRATION.vi.md` (Tiếng Việt) for the full
 | Volume slider as single source of truth | Verified by automated tests |
 | `debug_selection` / audit / `unexpected_started` | Verified by automated tests |
 | Card auto pipeline selection | Syntax-checked only (`node --check`); the selection logic is not unit-tested |
-| HA 2026.11 line, ESPHome speaker media players | Verified on the author's HA 2026.10.4 |
-| Assist pipeline with a local Wyoming TTS/STT | Verified on the author's HA 2026.10.4 |
-| Tapo speaker behavior | Not tested |
-| Other TTS engines | Not tested |
-| Other HA versions | Not tested (minimum declared 2026.11.0) |
-| ESPHome announcement interruption via `media_stop` | Not tested |
-| Frontend visual editor `assist_pipeline` selector | Not tested locally (backend verified) |
 | WAV validation, upload auth, token paths, traversal rejection | Verified by automated tests |
 | Relay playback selection, volume, per-speaker failure, cleanup | Verified by automated tests (mocked media players) |
 | Relay concurrency (409 busy) and temp-dir sweep | Verified by automated tests |
 | Browser recorder: downsample, WAV encoder, diagnostics | Verified by Node unit tests (not a real browser) |
 | Coexistence with a legacy `tts_broadcast` entry and import step | Verified by automated tests with a stub legacy integration |
-| Real microphone recording + Companion app on a phone | Not tested — see `TESTING.md` for the manual steps |
-| Relay on real ESPHome speakers over the LAN | Not tested — see `TESTING.md` |
+
+### Tested with (owner-confirmed on HAOS, Home Assistant 2026.11)
+
+| Item | Status |
+|------|--------|
+| TTS to several ESPHome speaker media players | Tested and working |
+| Wyoming TTS / STT | Tested and working |
+| Per-speaker switches and shared volume | Tested and working |
+| Voice phrases and the Assist pipeline with card `assist_pipeline_id: auto` | Tested and working |
+| Dashboard card (0.2.x UI) | Tested and working |
+| Voice relay recording from the Companion app | Tested and working |
+
+### Not tested
+
+| Item | Status |
+|------|--------|
+| Tapo camera speaker | Not tested |
+| TTS engines other than Wyoming | Not tested |
+| Other Home Assistant versions | Not tested (minimum declared 2026.11.0) |
+| Docker / Core / Supervised installs | Not tested |
+| iOS app | Not tested |
+| Desktop browsers other than the one the owner used | Not tested |
+| ESPHome announcement interruption via `media_stop` | Not tested |
 
 ## Privacy and security
 

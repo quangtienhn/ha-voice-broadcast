@@ -2,24 +2,25 @@
 
 ## Supported versions
 
-The following versions of Voice Broadcast receive security updates:
-
 | Version | Supported |
 |---------|-----------|
-| 0.1.x   | :white_check_mark: |
-| < 0.1.0 | :x: |
+| 0.2.x   | :white_check_mark: |
+| < 0.2.0 | :x: |
 
 ## Reporting a vulnerability
 
-Please do not report security vulnerabilities through public GitHub issues.
+Please do **not** report security vulnerabilities through public GitHub issues.
 
-Send details privately to the repository owner via GitHub (the contact method
-on the profile page), describing:
+Use [GitHub private vulnerability reporting](https://github.com/quangtienhn/ha-voice-broadcast/security/advisories/new) (Security tab → "Report a vulnerability"). Describe:
 
 - The affected version of Voice Broadcast.
-- The Home Assistant version.
+- The Home Assistant version and installation type (HAOS / Container / Core).
 - Steps to reproduce the issue.
 - The expected and actual behavior.
+
+If private vulnerability reporting is unavailable, open a regular issue asking the
+maintainer to enable it, or contact the owner privately through the profile page on
+GitHub; do not include exploit details in a public issue.
 
 ## Scope
 
