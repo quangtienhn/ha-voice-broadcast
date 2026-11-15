@@ -3,7 +3,8 @@
  *
  * The card is a plain browser script (no module exports), so this test stubs the
  * few browser globals it touches, evaluates the file, runs `_rebuild()` against a
- * fake `hass`, and inspects the entities-card config that would be rendered.
+ * fake `hass`, and inspects the speaker rows the card renders (including the
+ * device-name prefix stripping).
  *
  * Run with: node tests/test_card_display_name.mjs
  */
@@ -25,16 +26,30 @@ const cardPath = join(
 const source = readFileSync(cardPath, "utf8");
 
 const defined = new Map();
-let rendered = null;
+
+class FakeStyle {
+  constructor() {
+    this.properties = {};
+  }
+
+  setProperty(name, value) {
+    this.properties[name] = value;
+  }
+}
 
 class FakeElement {
   constructor(tag = "div") {
     this.tagName = tag;
-    this.style = {};
+    this.style = new FakeStyle();
     this.className = "";
     this.textContent = "";
     this.children = [];
     this.disabled = false;
+    this.type = "";
+    this.value = "";
+    this.checked = false;
+    this.attributes = {};
+    this._innerHTML = "";
   }
 
   attachShadow() {
@@ -48,6 +63,77 @@ class FakeElement {
   }
 
   addEventListener() {}
+
+  setAttribute(name, value) {
+    this.attributes[name] = String(value);
+  }
+
+  getAttribute(name) {
+    return this.attributes[name] ?? null;
+  }
+
+  removeAttribute(name) {
+    delete this.attributes[name];
+  }
+
+  get classList() {
+    const host = this;
+    const tokens = () => host.className.split(/\s+/).filter(Boolean);
+    return {
+      add(...names) {
+        const set = new Set(tokens());
+        names.forEach((name) => set.add(name));
+        host.className = [...set].join(" ");
+      },
+      remove(...names) {
+        const set = new Set(tokens());
+        names.forEach((name) => set.delete(name));
+        host.className = [...set].join(" ");
+      },
+      toggle(name, force) {
+        const set = new Set(tokens());
+        const has = set.has(name);
+        const want = force === undefined ? !has : Boolean(force);
+        if (want) {
+          set.add(name);
+        } else {
+          set.delete(name);
+        }
+        host.className = [...set].join(" ");
+        return want;
+      },
+      contains(name) {
+        return tokens().includes(name);
+      },
+    };
+  }
+
+  get innerHTML() {
+    return this._innerHTML;
+  }
+
+  set innerHTML(value) {
+    this._innerHTML = value;
+    if (value === "") this.children = [];
+  }
+
+  querySelector(selector) {
+    const matches = (element) => {
+      if (selector.startsWith(".")) {
+        return element.className.split(/\s+/).includes(selector.slice(1));
+      }
+      return element.tagName === selector;
+    };
+    const walk = (element) => {
+      for (const child of element.children || []) {
+        if (matches(child)) return child;
+        const found = walk(child);
+        if (found) return found;
+      }
+      return null;
+    };
+    return walk(this);
+  }
 }
 
 globalThis.HTMLElement = FakeElement;
@@ -56,14 +142,16 @@ globalThis.customElements = {
 };
 globalThis.window = {
   loadCardHelpers: async () => ({
-    createCardElement: async (config) => {
-      rendered = config;
-      return { hass: null };
-    },
+    createCardElement: async () => ({ hass: null, classList: { add() {} } }),
   }),
 };
 globalThis.document = {
   createElement: (tag) => new FakeElement(tag),
+  createTextNode: (text) => {
+    const node = new FakeElement("#text");
+    node.textContent = text;
+    return node;
+  },
 };
 
 // The card logs its version on load; keep test output clean.
@@ -107,12 +195,14 @@ async function render(devices, entities, friendlyNames) {
       entities.map(([entityId]) => [
         entityId,
         {
+          state: "on",
           attributes: friendlyNames[entityId]
             ? { friendly_name: friendlyNames[entityId] }
             : {},
         },
       ])
     ),
+    callService: async () => {},
   };
   const card = new Card();
   card._hass = hass;
@@ -122,123 +212,82 @@ async function render(devices, entities, friendlyNames) {
     show_assist: false,
     show_select_buttons: true,
   };
-  rendered = null;
   await card._rebuild();
-  assert.ok(rendered, "the entities card config must be created");
-  return rendered.entities;
+  const rows = card._refs ? [...card._refs.switchRows.values()] : [];
+  return rows;
 }
 
 const names = (rows) =>
-  rows
-    .filter((row) => typeof row === "object" && row.name !== undefined)
-    .map((row) => row.name);
-
-const entityRows = (rows) => rows.filter((row) => row.type !== "divider");
+  rows.map((row) => row.querySelector(".name").textContent);
 
 // --- 1. Real speaker names lose the device prefix -------------------------
-{
-  const rows = await render(
-    { "dev-tts": { name: "Voice Broadcast" } },
-    [
-      speaker("switch.voice_broadcast_loa_2", "Voice Broadcast Loa 2"),
-      speaker("switch.voice_broadcast_loa_1", "Voice Broadcast Loa 1"),
-      other("number.voice_broadcast_volume", "volume"),
-      other("text.voice_broadcast_message", "message"),
-      other("button.voice_broadcast_speak", "speak"),
-      other("button.voice_broadcast_stop", "stop"),
-      other("button.voice_broadcast_select_all", "select_all"),
-      other("button.voice_broadcast_select_none", "select_none"),
-    ],
-    {
-      "switch.voice_broadcast_loa_2": "Voice Broadcast Loa 2",
-      "switch.voice_broadcast_loa_1": "Voice Broadcast Loa 1",
-      "number.voice_broadcast_volume": "Voice Broadcast Volume",
-      "text.voice_broadcast_message": "Voice Broadcast Message",
-      "button.voice_broadcast_speak": "Voice Broadcast Speak",
-      "button.voice_broadcast_stop": "Voice Broadcast Stop",
-      "button.voice_broadcast_select_all": "Voice Broadcast Select all",
-      "button.voice_broadcast_select_none": "Voice Broadcast Select none",
-    }
-  );
 
-  assert.deepEqual(names(rows), [
-    "Loa 1",
-    "Loa 2",
-    "Volume",
-    "Message",
-    "Speak",
-    "Stop",
-    "Select all",
-    "Select none",
-  ]);
-  // Control paths keep pointing at the same entity ids.
-  assert.deepEqual(
-    rows
-      .filter((row) => typeof row === "object" && row.entity)
-      .map((row) => row.entity),
-    [
-      "switch.voice_broadcast_loa_1",
-      "switch.voice_broadcast_loa_2",
-      "number.voice_broadcast_volume",
-      "text.voice_broadcast_message",
-      "button.voice_broadcast_speak",
-      "button.voice_broadcast_stop",
-      "button.voice_broadcast_select_all",
-      "button.voice_broadcast_select_none",
-    ]
-  );
-}
+const rows1 = await render(
+  { "dev-tts": { name: "Voice Broadcast" } },
+  [
+    speaker("switch.voice_broadcast_loa_2", "Voice Broadcast Loa 2"),
+    speaker("switch.voice_broadcast_loa_1", "Voice Broadcast Loa 1"),
+    other("number.voice_broadcast_volume", "volume"),
+    other("text.voice_broadcast_message", "message"),
+    other("button.voice_broadcast_speak", "speak"),
+    other("button.voice_broadcast_stop", "stop"),
+    other("button.voice_broadcast_select_all", "select_all"),
+    other("button.voice_broadcast_select_none", "select_none"),
+  ],
+  {
+    "switch.voice_broadcast_loa_2": "Voice Broadcast Loa 2",
+    "switch.voice_broadcast_loa_1": "Voice Broadcast Loa 1",
+    "number.voice_broadcast_volume": "Voice Broadcast Volume",
+    "text.voice_broadcast_message": "Voice Broadcast Message",
+    "button.voice_broadcast_speak": "Voice Broadcast Speak",
+    "button.voice_broadcast_stop": "Voice Broadcast Stop",
+    "button.voice_broadcast_select_all": "Voice Broadcast Select all",
+    "button.voice_broadcast_select_none": "Voice Broadcast Select none",
+  }
+);
+
+assert.deepEqual(names(rows1), ["Loa 1", "Loa 2"]);
 
 // --- 2. Names without the prefix are left alone ---------------------------
-{
-  const rows = await render(
-    { "dev-tts": { name: "Voice Broadcast" } },
-    [
-      speaker("switch.loa_phong_khach", "Loa phòng khách"),
-      speaker("switch.loa_voice_broadcast", "Loa Voice Broadcast"),
-    ],
-    {
-      "switch.loa_phong_khach": "Loa phòng khách",
-      "switch.loa_voice_broadcast": "Loa Voice Broadcast",
-    }
-  );
-  // Unchanged names keep the plain entity-id form, so HA shows the full
-  // friendly name ("Loa phòng khách" / "Loa Voice Broadcast").
-  assert.deepEqual(entityRows(rows).sort(), [
-    "switch.loa_phong_khach",
-    "switch.loa_voice_broadcast",
-  ]);
-}
 
-// --- 3. Degenerate input never breaks or empties the card -----------------
-{
-  const rows = await render(
-    { "dev-tts": { name: "Voice Broadcast" } },
-    [
-      speaker("switch.only_device_name", "Voice Broadcast"),
-      speaker("switch.blank", "   "),
-      speaker("switch.no_friendly", null),
-    ],
-    {}
-  );
-  assert.deepEqual(entityRows(rows).sort(), [
-    "switch.blank",
-    "switch.no_friendly",
-    "switch.only_device_name",
-  ]);
-}
+const rows2 = await render(
+  { "dev-tts": { name: "Voice Broadcast" } },
+  [
+    speaker("switch.loa_phong_khach", "Loa phòng khách"),
+    speaker("switch.loa_voice_broadcast", "Loa Voice Broadcast"),
+  ],
+  {
+    "switch.loa_phong_khach": "Loa phòng khách",
+    "switch.loa_voice_broadcast": "Loa Voice Broadcast",
+  }
+);
 
-// --- 4. Extra whitespace and any device name are handled ------------------
-{
-  const rows = await render(
-    { "dev-tts": { name: "Nhà tôi" } },
-    [speaker("switch.loa_1", "Nhà tôi Loa 1")],
-    { "switch.loa_1": "Nhà tôi  Loa 1  " }
-  );
-  assert.equal(entityRows(rows).length, 1);
-  assert.equal(entityRows(rows)[0].entity, "switch.loa_1");
-  assert.equal(entityRows(rows)[0].name.trim(), "Loa 1");
-}
+assert.deepEqual(names(rows2), ["Loa phòng khách", "Loa Voice Broadcast"]);
+
+// --- 3. Degenerate input never breaks or empties the rows ------------------
+
+const rows3 = await render(
+  { "dev-tts": { name: "Voice Broadcast" } },
+  [
+    speaker("switch.only_device_name", "Voice Broadcast"),
+    speaker("switch.blank", "   "),
+    speaker("switch.no_friendly", null),
+  ],
+  {}
+);
+
+assert.equal(rows3.length, 3);
+
+// --- 4. Extra whitespace and any device name are handled -------------------
+
+const rows4 = await render(
+  { "dev-tts": { name: "Nhà tôi" } },
+  [speaker("switch.loa_1", "Nhà tôi Loa 1")],
+  { "switch.loa_1": "Nhà tôi  Loa 1  " }
+);
+
+assert.equal(rows4.length, 1);
+assert.equal(rows4[0].querySelector(".name").textContent.trim(), "Loa 1");
 
 console.log("card display-name checks passed");
 console.info = realInfo;
