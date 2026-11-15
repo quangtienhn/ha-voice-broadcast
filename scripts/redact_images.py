@@ -1,11 +1,14 @@
 """Redact personal device names from the screenshots added by the owner.
 
 The owner approved covering the real speaker/entity names. Each OCR text box
-that matches a personal-name pattern is painted over with the surrounding
-background colour, then the image is re-saved without metadata.
+that matches a sensitive pattern is painted over with the surrounding background
+colour, then the image is re-saved without metadata.
 
-Set ``VB_RAW_DIR`` to the directory holding the original files; by default the
-files are read from ``docs/images``.
+The sensitive patterns live in ``scripts/private_words.local.txt`` (gitignored) or
+in the file pointed to by the ``VB_PRIVATE_WORDS`` environment variable. Format:
+one ``name = regex`` entry per line; ``#`` starts a comment. Set ``VB_RAW_DIR`` to
+the directory holding the original files; by default the files are read from
+``docs/images``.
 """
 
 from __future__ import annotations
@@ -20,6 +23,10 @@ from rapidocr_onnxruntime import RapidOCR
 ROOT = Path(__file__).resolve().parents[1]
 IMAGES = ROOT / "docs" / "images"
 SOURCE = Path(os.environ.get("VB_RAW_DIR", IMAGES))
+DENYLIST = Path(
+    os.environ.get("VB_PRIVATE_WORDS") or ROOT / "scripts" / "private_words.local.txt"
+)
+
 # Source file prefix (the timestamp) -> final public name.
 MAPPING = {
     "1794748062524": "device-info.jpg",
@@ -29,24 +36,25 @@ MAPPING = {
     "1794748155666": "config-voice-phrases.jpg",
 }
 
-SENSITIVE = re.compile(
-    r"media_player\."
-    r"|esphome"
-    r"|speaker_(uno|box)"
-    r"|speaker_c"
-    r"|speaker_d"
-    r"|speaker_e"
-    r"|tapo"
-    r"|speaker_h"
-    r"|Loa\s+[A-Z0-9]"
-    r"|Loa 1"
-    r"|Loa 6"
-    r"|Loa 3"
-    r"|Loa 4"
-    r"|Loa 5"
-    r"|floor 4",
-    re.I,
-)
+
+def _load_sensitive() -> re.Pattern:
+    if not DENYLIST.is_file():
+        raise SystemExit(f"deny list not found: {DENYLIST} (set VB_PRIVATE_WORDS)")
+    alternatives = []
+    for raw in DENYLIST.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        _name, sep, regex = line.partition("=")
+        if not sep:
+            raise SystemExit(f"invalid deny list line: {line!r}")
+        alternatives.append(regex.strip())
+    if not alternatives:
+        raise SystemExit(f"deny list is empty: {DENYLIST}")
+    return re.compile("|".join(f"(?:{item})" for item in alternatives), re.I)
+
+
+SENSITIVE = _load_sensitive()
 
 engine = RapidOCR()
 

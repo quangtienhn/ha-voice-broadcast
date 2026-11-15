@@ -12,4 +12,5 @@ voice_broadcast_tmp/
 node_modules/
 *.wav
 !tests/fixtures/*.wav
+private_words.local.txt
 
