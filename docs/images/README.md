@@ -1,30 +1,23 @@
 # Screenshots
 
-Screenshots used by `README.md` and `README.vi.md`. Links are relative so they
-render correctly on GitHub.
+Screenshots used by `README.md`, `README.vi.md`, `docs/CARD.md`, `docs/CARD.vi.md`,
+`docs/VOICE_RELAY.md` and `docs/VOICE_RELAY.vi.md`. Links are relative so they render
+correctly on GitHub.
 
-| File | Shows | Used in |
-|------|-------|---------|
-| `dashboard-card.png` | Voice Broadcast card on a dashboard: per-speaker switches, message box, Select all/none, Speak, Stop and volume | README -> Dashboard card |
-| `assist-pipeline-setup.png` | Settings -> Voice assistants: conversation agent "Voice Broadcast" with the STT and TTS engines | README -> Voice setup |
-| `voice-phrases.png` | Options flow, Voice phrases step: strip/keep phrases, require phrase, fallback agent, accent insensitive | README -> Configuration |
+| File | Shows |
+|------|-------|
+| `card-speakers.jpg` | Dashboard card with the speaker list expanded, volume, tap-to-talk mic, TTS text and Assist row |
+| `card-collapsed.jpg` | Dashboard card with the speaker list collapsed |
+| `card-full.jpg` | Dashboard card in full view |
+| `device-info.jpg` | Device page with one switch per speaker |
+| `config-voice-phrases.jpg` | Options flow, Voice phrases step |
 
-These screenshots were taken before the voice relay row existed, so the card
-image does not show the Record/Delete controls. The relay is documented in the
-README and `TESTING.md`; a new screenshot would be welcome.
+## Privacy
 
-## Redaction
+The screenshots come from the author's own Home Assistant instance. Real speaker and
+entity names were covered with the surrounding background colour using
+`scripts/redact_images.py`, and all EXIF/XMP metadata was stripped by re-saving the
+images. `scripts/ocr_images.py` re-reads the finished files and fails if any personal
+name, private address, token or URL pattern reappears.
 
-`dashboard-card.png` was processed from the author's own screenshot. The real
-speaker names were replaced with neutral placeholders (`Loa 1` .. `Loa 8`) so the
-household layout is not revealed. The original file is not part of this
-repository.
-
-## Still missing
-
-The following would improve the docs but are not required:
-
-1. `device-page.png` - Voice Broadcast device page in Settings -> Devices & Services.
-2. `debug-view.png` - Developer Tools -> Services -> `voice_broadcast.debug_selection`
-   result (sanitized).
-3. `voice-relay.png` - card with the Record/Stop recording/Delete row.
+The originals are not part of this repository.
