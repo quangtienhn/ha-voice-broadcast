@@ -134,4 +134,5 @@ async def test_recording_options_step(hass: HomeAssistant, mock_config_entry) ->
         result["flow_id"], {"max_record_seconds": 30}
     )
     assert result["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
     assert mock_config_entry.options["max_record_seconds"] == 30
