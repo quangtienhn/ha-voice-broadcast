@@ -21,53 +21,34 @@ SIZES = {
 
 
 def draw(size: int, dark: bool) -> Image.Image:
-    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    img = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     color = (255, 255, 255, 255) if dark else (31, 111, 235, 255)
-    s = size / 256
-    stroke = max(1, int(round(10 * s)))
+    stroke = 10
 
     # Microphone capsule.
-    d.rounded_rectangle(
-        (94 * s, 44 * s, 158 * s, 146 * s),
-        radius=32 * s,
-        fill=color,
-    )
+    d.rounded_rectangle((94, 44, 158, 146), radius=32, fill=color)
     # Cradle (open U below the capsule).
-    d.arc(
-        (72 * s, 92 * s, 180 * s, 176 * s),
-        start=0,
-        end=180,
-        fill=color,
-        width=stroke,
-    )
+    d.arc((72, 92, 180, 176), start=0, end=180, fill=color, width=stroke)
     # Stem and base.
-    d.rounded_rectangle(
-        (121 * s, 168 * s, 131 * s, 206 * s),
-        radius=5 * s,
-        fill=color,
-    )
-    d.rounded_rectangle(
-        (98 * s, 206 * s, 154 * s, 216 * s),
-        radius=5 * s,
-        fill=color,
-    )
+    d.rounded_rectangle((121, 168, 131, 206), radius=5, fill=color)
+    d.rounded_rectangle((98, 206, 154, 216), radius=5, fill=color)
     # Broadcast waves, just right of the capsule.
-    d.arc(
-        (158 * s, 66 * s, 214 * s, 130 * s),
-        start=-55,
-        end=55,
-        fill=color,
-        width=stroke,
+    d.arc((158, 66, 214, 130), start=-55, end=55, fill=color, width=stroke)
+    d.arc((174, 46, 246, 150), start=-55, end=55, fill=color, width=stroke)
+
+    # Trim to the artwork and center it with a fixed margin.
+    bbox = img.getbbox()
+    if bbox is None:  # pragma: no cover - drawing always produces artwork
+        return Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    art = img.crop(bbox)
+    side = max(art.width, art.height)
+    margin = int(side * 0.12)
+    canvas = Image.new("RGBA", (side + 2 * margin, side + 2 * margin), (0, 0, 0, 0))
+    canvas.paste(
+        art, ((canvas.width - art.width) // 2, (canvas.height - art.height) // 2)
     )
-    d.arc(
-        (174 * s, 46 * s, 246 * s, 150 * s),
-        start=-55,
-        end=55,
-        fill=color,
-        width=stroke,
-    )
-    return img
+    return canvas.resize((size, size), Image.LANCZOS)
 
 
 def main() -> None:
