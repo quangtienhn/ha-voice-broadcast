@@ -13,7 +13,7 @@ integration khác, không phải bản nâng cấp tại chỗ:
 | Loại card | `custom:tts-broadcast-card` | `custom:voice-broadcast-card` |
 | File card | `tts-broadcast-card.js` | `voice-broadcast-card.js` |
 | Repository | repository cũ | `ha-voice-broadcast` |
-| Phiên bản | 1.2.1 | 0.2.0 |
+| Phiên bản | 1.2.1 | 0.2.1 |
 
 Home Assistant tạo entity id từ tên thiết bị và entity mới, nên chúng sẽ không giống hệt
 bản cũ. Hãy cập nhật dashboard, script và automation đang dùng entity hoặc dịch vụ cũ.

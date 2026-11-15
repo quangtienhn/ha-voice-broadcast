@@ -13,7 +13,7 @@ integration, not an in-place upgrade:
 | Card type | `custom:tts-broadcast-card` | `custom:voice-broadcast-card` |
 | Card file | `tts-broadcast-card.js` | `voice-broadcast-card.js` |
 | Repository | old repository | `ha-voice-broadcast` |
-| Version | 1.2.1 | 0.2.0 |
+| Version | 1.2.1 | 0.2.1 |
 
 Entity ids are created by Home Assistant from the new device and entity names, so they
 will not be identical to the old ones. Update dashboards, scripts and automations that

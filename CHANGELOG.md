@@ -5,6 +5,27 @@ All notable changes to the Voice Broadcast integration are documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 this project adheres to Semantic Versioning.
 
+## [0.2.1] - 2026-11-16
+
+Dashboard card updated to the approved UI layout (header chip with selected count,
+collapsible speaker list, shared volume, tap-to-talk microphone with waveform, TTS
+textarea with Send/Stop, and an Assist row with an invisible official button overlay).
+
+### Changed
+
+- `voice-broadcast-card.js` replaced with the approved single-frame layout. Speaker-name
+  prefix stripping, the Assist auto pipeline detection, the recorder pipeline
+  (AudioWorklet with ScriptProcessor fallback, downsample to 16 kHz, PCM WAV encode),
+  `hass.fetchWithAuth`, the `show_record` option and the cache-busted `?v=<version>`
+  static URL are all preserved. `VERSION` is now `0.2.1`.
+- `tests/test_card_display_name.mjs` rewritten against the new markup: it stubs the
+  DOM APIs the card uses (`setAttribute`, `classList`, `classList.toggle`, recursive
+  `querySelector`, `createTextNode`, `innerHTML` reset) and asserts the prefix is
+  stripped from speaker names in the rendered rows.
+- Fix the flaky `test_options_flow`/`test_import_flow` suite: two options-flow tests
+  now `await hass.async_block_till_done()` after the `CREATE_ENTRY` submit, which
+  eliminates a race where the entry reload timer could outlive the test.
+
 ## [0.2.0] - 2026-11-15
 
 First public release of **Voice Broadcast**, bringing TTS multi-speaker broadcasting and dashboard voice relay recording together in a single custom integration.

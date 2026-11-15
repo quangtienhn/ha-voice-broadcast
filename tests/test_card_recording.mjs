@@ -176,7 +176,7 @@ assert.ok(pure, "pure helpers must be exposed for the test suite");
 // --- Version matches the manifest ----------------------------------------
 {
   assert.equal(pure.VERSION, manifest.version);
-  assert.equal(pure.VERSION, "0.2.0");
+  assert.equal(pure.VERSION, "0.2.1");
 }
 
 console.log("card recording checks passed");
