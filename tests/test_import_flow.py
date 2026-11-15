@@ -10,8 +10,8 @@ from custom_components.voice_broadcast.const import DOMAIN, LEGACY_DOMAIN
 
 LEGACY_OPTIONS = {
     "tts_entity": "tts.wyoming_vietnamese",
-    "speakers": ["media_player.loa_1", "media_player.loa_khach"],
-    "no_volume_speakers": ["media_player.loa_khach"],
+    "speakers": ["media_player.living_room", "media_player.porch"],
+    "no_volume_speakers": ["media_player.porch"],
     "volume": 35,
     "language": "vi",
     "options": {"voice": "VaiNeural"},
@@ -24,7 +24,7 @@ LEGACY_OPTIONS = {
 
 USER_INPUT = {
     "tts_entity": "tts.wyoming_vietnamese",
-    "speakers": ["media_player.loa_1"],
+    "speakers": ["media_player.living_room"],
     "no_volume_speakers": [],
     "volume": 50,
     "language": "",

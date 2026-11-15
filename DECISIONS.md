@@ -163,7 +163,7 @@
 
 ### Screenshots (privacy gate)
 
-- The author-provided phone screenshots (`docs/images/*.jpg`) originally showed real speaker and entity names (`media_player.*`, `Loa 1`, `Loa 2`, …). They were redacted by painting the text boxes with the surrounding row background (horizontal gradient sampled left/right of each box) in `scripts/redact_images.py`, then re-saved with all metadata stripped. `scripts/ocr_images.py` re-reads the finished files and fails if any personal name, private address, token or URL reappears. The three old placeholder PNGs (`dashboard-card.png`, `assist-pipeline-setup.png`, `voice-phrases.png`) were removed; the brand new screenshots are the only ones shipped.
+- The author-provided phone screenshots (`docs/images/*.jpg`) originally showed real speaker and entity names (media_player.* ids and display names). They were redacted by painting the text boxes with the surrounding row background (horizontal gradient sampled left/right of each box) in `scripts/redact_images.py`, then re-saved with all metadata stripped. `scripts/ocr_images.py` re-reads the finished files and fails if any personal name, private address, token or URL reappears. The three old placeholder PNGs (`dashboard-card.png`, `assist-pipeline-setup.png`, `voice-phrases.png`) were removed; the brand new screenshots are the only ones shipped.
 - `dashboard-card.png` / `assist-pipeline-setup.png` / `voice-phrases.png` references elsewhere in this file are historical (the sections are marked as such); those files no longer exist.
 
 ### Concurrency

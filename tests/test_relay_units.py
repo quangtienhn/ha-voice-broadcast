@@ -85,9 +85,7 @@ async def test_wipe_temp_dir_removes_previous_run_files(hass) -> None:
 
 
 def test_build_playback_url_uses_internal_http(hass) -> None:
-    with patch.object(
-        rec, "get_url", return_value="http://192.0.2.5:8123"
-    ) as get_url:
+    with patch.object(rec, "get_url", return_value="http://192.0.2.5:8123") as get_url:
         url = rec.build_playback_url(hass, "token")
 
     assert url == "http://192.0.2.5:8123/api/voice_broadcast/recording/token.wav"

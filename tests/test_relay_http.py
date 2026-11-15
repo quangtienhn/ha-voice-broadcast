@@ -36,9 +36,7 @@ async def relay(
     monkeypatch,
 ) -> AsyncIterator[RelayHarness]:
     # Deterministic LAN URL: the upload endpoint refuses loopback URLs.
-    monkeypatch.setattr(
-        rec, "get_url", lambda *args, **kwargs: "http://192.0.2.5:8123"
-    )
+    monkeypatch.setattr(rec, "get_url", lambda *args, **kwargs: "http://192.0.2.5:8123")
     monkeypatch.setattr(rec, "CLEANUP_GRACE_SECONDS", 0.05)
     monkeypatch.setattr(rec, "CLEANUP_POLL_SECONDS", 0.01)
 

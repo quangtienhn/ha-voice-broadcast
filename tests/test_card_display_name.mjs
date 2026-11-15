@@ -162,8 +162,8 @@ const entityRows = (rows) => rows.filter((row) => row.type !== "divider");
   );
 
   assert.deepEqual(names(rows), [
-    "Loa 2",
     "Loa 1",
+    "Loa 2",
     "Volume",
     "Message",
     "Speak",
@@ -177,8 +177,8 @@ const entityRows = (rows) => rows.filter((row) => row.type !== "divider");
       .filter((row) => typeof row === "object" && row.entity)
       .map((row) => row.entity),
     [
-      "switch.voice_broadcast_loa_2",
       "switch.voice_broadcast_loa_1",
+      "switch.voice_broadcast_loa_2",
       "number.voice_broadcast_volume",
       "text.voice_broadcast_message",
       "button.voice_broadcast_speak",

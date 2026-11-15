@@ -328,8 +328,8 @@ Xem `MIGRATION.md` (tiếng Anh) và `MIGRATION.vi.md` (tiếng Việt) để c�
 3. Nếu `unexpected_started` trống và `targeted` chỉ có một entity nhưng các loa khác vẫn
    phát, nguyên nhân nằm **ngoài integration này**: kiểm tra Logbook xem ai đã khởi động
    các loa đó, liệt kê các automation/script gọi `tts.speak` hoặc
-   `media_player.play_media`, và kiểm tra gói YAML cũ (script `old_broadcast_script`, automation
-   "Assist - old announcement", `input_boolean.old_*`).
+   `media_player.play_media`, và kiểm tra gói YAML cũ (automation, script và input
+   boolean gọi các dịch vụ phát thanh cũ).
 4. Nếu `targeted` có nhiều hơn một entity, hãy gửi toàn bộ kết quả `debug_selection`,
    trạng thái các công tắc và các dòng log của integration.
 

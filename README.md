@@ -332,9 +332,8 @@ See `MIGRATION.md` (English) and `MIGRATION.vi.md` (Tiếng Việt) for the full
 3. If `unexpected_started` is empty and `targeted` has one entity but other
    speakers still play, the cause is outside this integration: check the Logbook
    for who started those players, list automations/scripts that call
-   `tts.speak` or `media_player.play_media`, and check for the old YAML package
-   (script `old_broadcast_script`, the "Assist - old announcement" automation,
-   `input_boolean.old_*`).
+   `tts.speak` or `media_player.play_media`, and check for an old YAML package
+   (an automation, scripts and input booleans that called the old broadcast services).
 4. If `targeted` has more than one entity, send the full `debug_selection`
    output, the switch states, and the integration log lines.
 
